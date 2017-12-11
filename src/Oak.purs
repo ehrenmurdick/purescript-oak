@@ -21,7 +21,7 @@ data Tag =
 type TagOptions =
   { }
 
-foreign import data App :: Type
+type App = {}
 
 foreign import createAppImpl :: AppOptions -> App
 
