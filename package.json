@@ -5,6 +5,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "lodash": "^4.17.4",
     "virtual-dom": "^2.1.1"
   }
 }

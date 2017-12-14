@@ -1,6 +1,12 @@
 module Main where
 
-import Oak (App, createApp, text, div, Tag)
+import Oak ( createApp
+           , text
+           , div
+           , Tag
+           , App
+           , button
+           )
 
 type Model =
   { }
@@ -8,7 +14,9 @@ type Model =
 data Msg = None
 
 view :: Model -> Tag
-view model = div {} [text "hello"]
+view model = div {} [ text "hello"
+                    , button {} [text "+"]
+                    ]
 
 update :: Msg -> Model -> Model
 update msg model = model

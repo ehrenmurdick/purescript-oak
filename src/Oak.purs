@@ -1,16 +1,15 @@
 module Oak
   ( createApp
-  , App
   , Tag
   , text
   , div
+  , App
+  , button
   ) where
 
-type AppOptions = forall model msg.
-  { init   :: (model)
-  , update :: (msg -> model -> model)
-  , view   :: (model -> Tag)
-  }
+foreign import data App :: Type
+
+foreign import nativeCreateApp :: forall a. a -> App
 
 data Tag =
   Tag { name     :: String
@@ -21,17 +20,18 @@ data Tag =
 type TagOptions =
   { }
 
-type App = {}
-
 text :: String -> Tag
 text s = Text s
 
 div :: TagOptions -> Array Tag -> Tag
 div opts children = Tag {name: "div", children: children}
 
+button :: TagOptions -> Array Tag -> Tag
+button opts children = Tag {name: "button", children: children}
+
 createApp :: forall msg model.
              { init :: model
              , update :: msg -> model -> model
              , view :: model -> Tag
              } -> App
-createApp opts = {}
+createApp opts = nativeCreateApp opts
