@@ -5,33 +5,39 @@ module Oak
   , div
   , App
   , button
+  , TagOption
+  , onClick
   ) where
 
 foreign import data App :: Type
 
 foreign import nativeCreateApp :: forall a. a -> App
 
-data Tag =
+data Tag msg =
   Tag { name     :: String
-      , children :: Array Tag
+      , children :: Array (Tag msg)
+      , options  :: Array (TagOption msg)
       }
   | Text String
 
-type TagOptions =
-  { }
+data TagOption msg =
+  OnClick msg
 
-text :: String -> Tag
+onClick :: forall msg. msg -> TagOption msg
+onClick a = OnClick a
+
+text :: forall msg. String -> Tag msg
 text s = Text s
 
-div :: TagOptions -> Array Tag -> Tag
-div opts children = Tag {name: "div", children: children}
+div :: forall msg. Array (TagOption msg) -> Array (Tag msg) -> (Tag msg)
+div opts children = Tag {name: "div", children: children, options: opts}
 
-button :: TagOptions -> Array Tag -> Tag
-button opts children = Tag {name: "button", children: children}
+button :: forall msg. Array (TagOption msg) -> Array (Tag msg) -> (Tag msg)
+button opts children = Tag {name: "button", children: children, options: opts}
 
 createApp :: forall msg model.
              { init :: model
              , update :: msg -> model -> model
-             , view :: model -> Tag
+             , view :: model -> (Tag msg)
              } -> App
 createApp opts = nativeCreateApp opts

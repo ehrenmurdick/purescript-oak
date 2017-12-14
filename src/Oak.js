@@ -19,24 +19,25 @@ var App = function(opts) {
   this.rootNode = createElement(this.tree);
 };
 
-App.prototype.registerHandler = function (name, view) {
-  if (view.opts && view.opts[name]) {
-    var ctor = view.opts[name];
+App.prototype.registerHandler = function (name, eventName, view) {
+  var handlerOption = _.find(view.options, function(option) {
+    return option.constructor.name === name;
+  });
+  if (handlerOption) {
     var self = this;
-    view.opts[name] = function(e) {
-      self.handleMsg(new ctor(e));
+    view.__options[eventName] = function() {
+      self.handleMsg(handlerOption.value0);
     };
   }
-  return view;
 };
 
 App.prototype.render = function (pursView) {
   var view = pursView.value0;
+  view.__options = {};
   if (typeof view === 'object') {
-    this.registerHandler('onclick', view);
-    this.registerHandler('oninput', view);
+    this.registerHandler('OnClick', 'onclick', view);
 
-    return h(view.name, view.opts, _.map(view.children, this.render.bind(this)));
+    return h(view.name, view.__options, _.map(view.children, this.render.bind(this)));
   } else {
     return view;
   }
