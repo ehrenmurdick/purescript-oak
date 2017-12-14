@@ -7,9 +7,9 @@ module Oak
   ) where
 
 type AppOptions = forall model msg.
-  { init   :: model
-  , update :: msg   -> model -> model
-  , view   :: model -> Tag
+  { init   :: (model)
+  , update :: (msg -> model -> model)
+  , view   :: (model -> Tag)
   }
 
 data Tag =
@@ -23,13 +23,15 @@ type TagOptions =
 
 type App = {}
 
-foreign import createAppImpl :: AppOptions -> App
-
 text :: String -> Tag
 text s = Text s
 
 div :: TagOptions -> Array Tag -> Tag
 div opts children = Tag {name: "div", children: children}
 
-createApp :: AppOptions -> App
-createApp opts = createAppImpl opts
+createApp :: forall msg model.
+             { init :: model
+             , update :: msg -> model -> model
+             , view :: model -> Tag
+             } -> App
+createApp opts = {}

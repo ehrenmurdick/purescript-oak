@@ -13,10 +13,13 @@ view model = div {} [text "hello"]
 update :: Msg -> Model -> Model
 update msg model = model
 
+init :: Model
+init = {}
+
 main :: App
 main =
   createApp
-    { view: view
+    { init: init
+    , view: view
     , update: update
-
     }
