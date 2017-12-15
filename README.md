@@ -1,6 +1,6 @@
 Oak is an implementation of the Elm architecture in Purescript.
 
-```
+```purescript
 module Main where
 
 import Prelude ( (+)
