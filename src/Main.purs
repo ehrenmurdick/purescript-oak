@@ -10,28 +10,42 @@ import Oak ( createApp, App )
 import Oak.HTML ( text
                 , div
                 , button
+                , input
                 , HTML
                 )
 
-import Oak.HTML.Attributes (onClick)
+import Oak.HTML.Attributes ( onClick
+                           , onInput
+                           )
 
 type Model =
-  { number :: Int }
+  { number :: Int
+  , message :: String
+  }
 
-data Msg = Inc | Dec
+data Msg = Inc
+         | Dec
+         | SetMessage String
 
 view :: Model -> (HTML Msg)
-view model = div [] [ text (show model.number)
-                    , button [(onClick Inc)] [text "+"]
-                    , button [(onClick Dec)] [text "-"]
+view model = div [] [ div [] [ text (show model.number)
+                             , button [(onClick Inc)] [text "+"]
+                             , button [(onClick Dec)] [text "-"]
+                             ]
+                    , div [] [ text model.message
+                             , input [(onInput SetMessage)] []
+                             ]
                     ]
 
 update :: Msg -> Model -> Model
-update Inc model = { number: model.number + 1 }
-update Dec model = { number: model.number - 1 }
+update Inc model = model { number = model.number + 1 }
+update Dec model = model { number = model.number - 1 }
+update (SetMessage s) model = model { message = s }
 
 init :: Model
-init = { number: 0 }
+init = { number: 0
+       , message: ""
+       }
 
 main :: App
 main =

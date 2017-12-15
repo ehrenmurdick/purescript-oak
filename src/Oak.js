@@ -19,23 +19,29 @@ var App = function(opts) {
   this.rootNode = createElement(this.tree);
 };
 
-App.prototype.registerHandler = function (name, eventName, view) {
-  var handlerOption = _.find(view.options, function(option) {
-    return option.constructor.name === name;
+App.prototype.registerHandlers = function(view) {
+  var self = this;
+  _.each(view.options, function(option) {
+    switch(option.constructor.name) {
+    case 'OnClick':
+      view.__options['onclick'] = function() {
+        self.handleMsg(option.value0);
+      };
+      break;
+    case 'OnInput':
+      view.__options['oninput'] = function(e) {
+        self.handleMsg(option.value0(e.target.value));
+      };
+      break;
+    }
   });
-  if (handlerOption) {
-    var self = this;
-    view.__options[eventName] = function() {
-      self.handleMsg(handlerOption.value0);
-    };
-  }
 };
 
 App.prototype.render = function (pursView) {
   var view = pursView.value0;
   view.__options = {};
   if (typeof view === 'object') {
-    this.registerHandler('OnClick', 'onclick', view);
+    this.registerHandlers(view);
 
     return h(view.name, view.__options, _.map(view.children, this.render.bind(this)));
   } else {
