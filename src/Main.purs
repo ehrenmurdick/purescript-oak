@@ -11,6 +11,7 @@ import Oak.HTML ( text
                 , div
                 , button
                 , input
+                , br
                 , HTML
                 )
 
@@ -32,7 +33,9 @@ view model = div [] [ div [] [ text (show model.number)
                              , button [(onClick Inc)] [text "+"]
                              , button [(onClick Dec)] [text "-"]
                              ]
+                    , br []
                     , div [] [ text model.message
+                             , br []
                              , input [(onInput SetMessage)] []
                              ]
                     ]

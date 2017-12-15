@@ -3,6 +3,7 @@ module Oak.HTML ( text
                 , button
                 , HTML
                 , input
+                , br
                 ) where
 
 import Oak.HTML.Attributes (Attribute)
@@ -16,6 +17,9 @@ data HTML msg =
 
 text :: forall msg. String -> HTML msg
 text s = Text s
+
+br :: forall msg. Array (Attribute msg) -> HTML msg
+br options = HTML { name: "br", children: [], options: options }
 
 div :: forall msg. Array (Attribute msg) -> Array (HTML msg) -> (HTML msg)
 div opts children = HTML {name: "div", children: children, options: opts}
