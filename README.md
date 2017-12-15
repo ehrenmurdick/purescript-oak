@@ -8,21 +8,22 @@ import Prelude ( (+)
                , show
                )
 
-import Oak ( createApp
-           , text
-           , div
-           , Tag
-           , App
-           , button
-           , onClick
-           )
+import Oak ( createApp, App )
+
+import Oak.HTML ( text
+                , div
+                , button
+                , HTML
+                )
+
+import Oak.HTML.Attributes (onClick)
 
 type Model =
   { number :: Int }
 
 data Msg = Inc | Dec
 
-view :: Model -> (Tag Msg)
+view :: Model -> (HTML Msg)
 view model = div [] [ text (show model.number)
                     , button [(onClick Inc)] [text "+"]
                     , button [(onClick Dec)] [text "-"]
