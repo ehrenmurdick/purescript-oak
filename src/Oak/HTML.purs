@@ -18,14 +18,17 @@ data HTML msg =
 text :: forall msg. String -> HTML msg
 text s = Text s
 
+tag :: forall msg. String -> Array (Attribute msg) -> Array (HTML msg) -> HTML msg
+tag name options children = HTML { name: name, options: options, children: children }
+
 br :: forall msg. Array (Attribute msg) -> HTML msg
-br options = HTML { name: "br", children: [], options: options }
+br options = tag "br" options []
 
 div :: forall msg. Array (Attribute msg) -> Array (HTML msg) -> (HTML msg)
-div opts children = HTML {name: "div", children: children, options: opts}
+div = tag "div"
 
 button :: forall msg. Array (Attribute msg) -> Array (HTML msg) -> (HTML msg)
-button opts children = HTML {name: "button", children: children, options: opts}
+button = tag "button"
 
 input :: forall msg. Array (Attribute msg) -> Array (HTML msg) -> (HTML msg)
-input opts children = HTML {name: "input", children: children, options: opts}
+input = tag "input"
