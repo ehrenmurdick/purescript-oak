@@ -1,35 +1,54 @@
 module Main where
 
-import Prelude ( (+)
-               , (-)
-               , show
-               )
+import Prelude
+  ( (+)
+  , (-)
+  , show
+)
 
-import Oak ( createApp, App )
+import Oak
+  ( createApp
+  , App
+  )
 
-import Oak.HTML ( text
-                , div
-                , button
-                , input
-                , br
-                , HTML
-                )
+import Oak.HTML
+  ( text
+  , div
+  , button
+  , input
+  , br
+  , HTML
+  )
 
-import Oak.HTML.Attributes ( onClick
-                           , onInput
-                           )
+import Oak.HTML.Attributes
+  ( Attribute
+  , onClick
+  , onInput
+  , style
+  )
+
+import Oak.HTML.Style
+  ( backgroundColor
+  , fontWeight
+  )
 
 type Model =
   { number :: Int
   , message :: String
   }
 
-data Msg = Inc
-         | Dec
-         | SetMessage String
+data Msg
+  = Inc
+  | Dec
+  | SetMessage String
+
+myStyle :: Attribute Msg
+myStyle = style [ backgroundColor "peachpuff"
+                , fontWeight "bold"
+                ]
 
 view :: Model -> (HTML Msg)
-view model = div [] [ div [] [ text (show model.number)
+view model = div [] [ div [myStyle] [ text (show model.number)
                              , button [(onClick Inc)] [text "+"]
                              , button [(onClick Dec)] [text "-"]
                              ]

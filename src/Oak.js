@@ -33,6 +33,20 @@ App.prototype.registerHandlers = function(view) {
         self.handleMsg(option.value0(e.target.value));
       };
       break;
+    case 'Style':
+      view.__options.style = {};
+      _.each(option.value0, function(style) {
+        switch (style.constructor.name) {
+        case 'BackgroundColor':
+          view.__options.style['background-color'] = style.value0;
+          break;
+        case 'FontWeight':
+          view.__options.style['font-weight'] = style.value0;
+          break;
+        }
+      });
+
+      break;
     }
   });
 };
