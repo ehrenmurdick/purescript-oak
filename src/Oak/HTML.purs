@@ -1,7 +1,7 @@
 module Oak.HTML ( text
                 , div
                 , button
-                , HTML
+                , HTML(..)
                 , input
                 , br
                 ) where
