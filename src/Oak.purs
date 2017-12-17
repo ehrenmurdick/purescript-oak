@@ -1,17 +1,18 @@
 module Oak
   ( createApp
   , App
-  , VirtualDOM
-  , NativeDOM
   ) where
 
 import Oak.HTML (HTML(..))
+import Oak.Native.VirtualDOM
+  ( NativeDOM
+  , VirtualDOM
+  , nativeCreateElement
+  , nativeText
+  , nativeTag
+  )
+  
 import Prelude (map)
-
-foreign import data VirtualDOM :: Type
-foreign import data NativeDOM :: Type
-
-type NativeOptions = {}
 
 type App = { rootNode :: NativeDOM }
 
@@ -42,9 +43,6 @@ createApp {init, update, view} =
   in
     { rootNode: rootNode }
 
-foreign import nativeText :: String -> VirtualDOM
-foreign import nativeTag :: String -> NativeOptions -> Array VirtualDOM -> VirtualDOM
-foreign import nativeCreateElement :: VirtualDOM -> NativeDOM
 
 render :: forall msg. HTML msg -> VirtualDOM
 render (Text str) = nativeText str
