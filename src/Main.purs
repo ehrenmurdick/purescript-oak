@@ -6,32 +6,6 @@ import Prelude
   , show
 )
 
-import Oak
-  ( createApp
-  , App
-  )
-
-import Oak.HTML
-  ( text
-  , div
-  , button
-  , input
-  , br
-  , HTML
-  )
-
-import Oak.HTML.Attributes
-  ( Attribute
-  , onClick
-  , onInput
-  , style
-  )
-
-import Oak.HTML.Style
-  ( backgroundColor
-  , fontWeight
-  )
-
 type Model =
   { number :: Int
   , message :: String
@@ -47,7 +21,7 @@ myStyle = style [ backgroundColor "peachpuff"
                 , fontWeight "bold"
                 ]
 
-view :: Model -> (HTML Msg)
+view :: Model -> HTML Msg
 view model = div [] [ div [myStyle] [ text (show model.number)
                              , button [(onClick Inc)] [text "+"]
                              , button [(onClick Dec)] [text "-"]
@@ -69,7 +43,6 @@ init = { number: 0
        , message: ""
        }
 
-main :: App
 main =
   createApp
     { init: init
