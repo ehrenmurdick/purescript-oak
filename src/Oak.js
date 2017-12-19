@@ -80,31 +80,3 @@ var nativeCreateApp = function(appOpts) {
   return app;
 };
 exports.nativeCreateApp = nativeCreateApp;
-
-var el = function(name, opts, children) {
-  return {
-    name: name,
-    opts: opts,
-    children: children
-  };
-};
-
-var button = function(opts, children) {
-  return el('button', opts, children);
-};
-exports.button = button;
-
-var div = function(opts, children) {
-  return el('div', opts, children);
-};
-exports.div = div;
-
-var input = function(opts, children) {
-  return el('input', opts, children);
-};
-exports.input = input;
-
-var br = function(opts, children) {
-  return el('br', opts, children);
-};
-exports.br = br;
