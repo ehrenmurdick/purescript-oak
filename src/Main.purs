@@ -1,48 +1,30 @@
 module Main where
 
-import Prelude
-  ( (+)
-  , (-)
-  , show
-)
+import Oak
+  ( createApp
+  , HTML
+  , App
+  , text
+  )
 
 type Model =
-  { number :: Int
-  , message :: String
+  { message :: String
   }
 
 data Msg
-  = Inc
-  | Dec
-  | SetMessage String
-
-myStyle :: Attribute Msg
-myStyle = style [ backgroundColor "peachpuff"
-                , fontWeight "bold"
-                ]
+  = None
 
 view :: Model -> HTML Msg
-view model = div [] [ div [myStyle] [ text (show model.number)
-                             , button [(onClick Inc)] [text "+"]
-                             , button [(onClick Dec)] [text "-"]
-                             ]
-                    , br []
-                    , div [] [ text model.message
-                             , br []
-                             , input [(onInput SetMessage)] []
-                             ]
-                    ]
+view model = text model.message
 
 update :: Msg -> Model -> Model
-update Inc model = model { number = model.number + 1 }
-update Dec model = model { number = model.number - 1 }
-update (SetMessage s) model = model { message = s }
+update _ model = model
 
 init :: Model
-init = { number: 0
-       , message: ""
+init = { message: "hello from oak"
        }
 
+main :: App
 main =
   createApp
     { init: init
