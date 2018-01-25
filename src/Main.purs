@@ -4,6 +4,7 @@ import Oak
   ( createApp
   , HTML
   , App
+  , div
   , text
   )
 
@@ -15,7 +16,8 @@ data Msg
   = None
 
 view :: Model -> HTML Msg
-view model = text model.message
+view model = div [text model.message
+                 ]
 
 update :: Msg -> Model -> Model
 update _ model = model
@@ -24,7 +26,7 @@ init :: Model
 init = { message: "hello from oak"
        }
 
-main :: App
+main :: App Model Msg
 main =
   createApp
     { init: init
