@@ -1,4 +1,16 @@
 var h = require('virtual-dom/h');
+var diff = require('virtual-dom/diff');
+var patch = require('virtual-dom/patch');
+
+exports.performSideEffect = function(rootNode) {
+  return function(oldTree) {
+    return function(newTree) {
+      var patches = diff(oldTree, newTree);
+      patch(rootNode, patches);
+      return newTree;
+    };
+  };
+};
 
 exports.nativeText = function(text) {
   return text;
@@ -8,6 +20,7 @@ exports.nativeText = function(text) {
 exports.bindD = function(virtualdom) {
   return function(callback) {
     // wire up event handlers to call the callback
+    console.log(virtualdom);
   };
 };
 

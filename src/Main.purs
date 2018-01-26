@@ -16,8 +16,7 @@ data Msg
   = None
 
 view :: Model -> HTML Msg
-view model = div [text model.message
-                 ]
+view model = div [ text model.message ]
 
 update :: Msg -> Model -> Model
 update _ model = model

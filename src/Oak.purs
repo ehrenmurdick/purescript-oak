@@ -5,7 +5,10 @@ module Oak
   , text
   , div
   , runApp
+  , render
+  , renderHTML
   , DOM
+  , RootNode
   ) where
 
 
@@ -88,14 +91,19 @@ renderHTML :: forall msg. HTML msg -> DOM msg
 renderHTML (Tag name children) = renderN name (map renderHTML children)
 renderHTML (Text str) = nativeText str
 
-render :: forall model msg. App model msg -> DOM msg
-render (App app) =
+foreign import performSideEffect :: forall msg. RootNode -> DOM msg -> DOM msg -> DOM msg
+
+render :: forall model msg. App model msg -> RootNode -> DOM msg -> DOM msg
+render (App app) node oldTree =
   let
     root = app.view app.model
+    newTree = renderHTML root
   in
-    renderHTML root
+    performSideEffect node oldTree newTree
 
-runApp :: forall model msg. App model msg -> DOM msg
-runApp app = do
-  msg <- render app
-  render app
+foreign import data RootNode :: Type
+
+runApp :: forall model msg. App model msg -> RootNode -> DOM msg
+runApp app@(App opts) rootNode = do
+  msg <- render app rootNode (renderHTML (opts.view opts.model))
+  runApp app rootNode
