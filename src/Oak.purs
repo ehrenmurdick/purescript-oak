@@ -61,33 +61,33 @@ createApp opts = App
 
 -- bind :: forall a b. m a -> (a -> m b) -> m b
 
-foreign import data DOM :: Type -> Type -> Type
+foreign import data DOM :: Type -> Type
 -- foreign import data Eff :: # Effect -> Type -> Type
 
-foreign import bindD :: forall e a b. DOM e a -> (a -> DOM e b) -> DOM e b
+foreign import bindD :: forall a b. DOM a -> (a -> DOM b) -> DOM b
 -- foreign import bindE :: forall e a b. Eff e a -> (a -> Eff e b) -> Eff e b
 
-instance bindDOM :: Bind (DOM msg) where
-  bind = bindD
+instance bindDOM :: Bind DOM where
+  bind dom f = bindD dom f
 
-instance applyDOM :: Apply (DOM e) where
+instance applyDOM :: Apply DOM where
   apply = ap
 
-instance monadDOM :: Monad (DOM e)
+instance monadDOM :: Monad DOM
 
-instance applicativeDOM :: Applicative (DOM e) where
+instance applicativeDOM :: Applicative DOM where
   pure = pureD
 
-foreign import pureD :: forall e a. a -> DOM e a
+foreign import pureD :: forall a. a -> DOM a
 
 
-instance functorDOM :: Functor (DOM e) where
+instance functorDOM :: Functor DOM where
   map = liftA1
 
 
-foreign import renderN :: forall model msg. App model msg -> DOM msg msg
+foreign import renderN :: forall model msg. App model msg -> DOM msg
 
-render :: forall model msg. App model msg -> DOM msg msg
+render :: forall model msg. App model msg -> DOM msg
 render = renderN
 
 
