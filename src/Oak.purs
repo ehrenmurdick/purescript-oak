@@ -1,27 +1,12 @@
-module Oak
-  ( createApp
-  , HTML
-  , App
-  , text
-  , div
-  , runApp
-  , render
-  , renderHTML
-  , DOM
-  , RootNode
-  ) where
-
+module Oak where
 
 import Prelude
   ( bind
   , map
+  , Unit
   )
 
-import Control.Monad (class Monad, ap)
-import Control.Bind (class Bind)
-import Control.Apply (class Apply)
-import Control.Applicative (class Applicative, liftA1)
-import Data.Functor (class Functor)
+import Control.Monad.Eff
 
 -- main : Program Never number Msg
 -- bind :: forall a b. m a -> (a -> m b) -> m b
@@ -62,38 +47,28 @@ createApp opts = App
 
 -- bind :: forall a b. m a -> (a -> m b) -> m b
 
-foreign import data DOM :: Type -> Type
+foreign import data Tree :: Type
+foreign import data DOM :: Effect
 -- foreign import data Eff :: # Effect -> Type -> Type
 
-foreign import bindD :: forall a b. DOM a -> (a -> DOM b) -> DOM b
--- foreign import bindE :: forall e a b. Eff e a -> (a -> Eff e b) -> Eff e b
+foreign import renderN :: String -> Array Tree -> Tree
+foreign import nativeText :: String -> Tree
 
-instance bindDOM :: Bind DOM where
-  bind = bindD
-
-instance applyDOM :: Apply DOM where
-  apply = ap
-
-instance monadDOM :: Monad DOM
-
-instance applicativeDOM :: Applicative DOM where
-  pure = pureD
-
-foreign import pureD :: forall a. a -> DOM a
-
-instance functorDOM :: Functor DOM where
-  map = liftA1
-
-foreign import renderN :: forall msg. String -> Array (DOM msg) -> DOM msg
-foreign import nativeText :: forall msg. String -> DOM msg
-
-renderHTML :: forall msg. HTML msg -> DOM msg
+renderHTML :: forall msg. HTML msg -> Tree
 renderHTML (Tag name children) = renderN name (map renderHTML children)
 renderHTML (Text str) = nativeText str
 
-foreign import performSideEffect :: forall msg. RootNode -> DOM msg -> DOM msg -> DOM msg
+foreign import performSideEffect :: RootNode -> Tree -> Tree -> Eff (dom :: DOM) Unit
 
-render :: forall model msg. App model msg -> RootNode -> DOM msg -> DOM msg
+handleMsg :: forall model msg. App model msg -> RootNode -> Tree -> msg -> Eff (dom :: DOM) Unit
+handleMsg (App app) root tree msg =
+  let
+    newModel = app.update msg app.model
+    newTree = renderHTML (app.view newModel)
+  in
+    performSideEffect root tree newTree
+
+render :: forall model msg. App model msg -> RootNode -> Tree -> Eff (dom :: DOM) Unit
 render (App app) node oldTree =
   let
     root = app.view app.model
@@ -103,7 +78,5 @@ render (App app) node oldTree =
 
 foreign import data RootNode :: Type
 
-runApp :: forall model msg. App model msg -> RootNode -> DOM msg
-runApp app@(App opts) rootNode = do
-  msg <- render app rootNode (renderHTML (opts.view opts.model))
-  runApp app rootNode
+runApp :: forall model msg. App model msg -> RootNode -> Eff (dom :: DOM) Unit
+runApp app@(App opts) rootNode = render app rootNode (renderHTML (opts.view opts.model))

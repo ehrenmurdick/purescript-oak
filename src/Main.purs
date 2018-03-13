@@ -22,7 +22,7 @@ update :: Msg -> Model -> Model
 update _ model = model
 
 init :: Model
-init = { message: "hello from oak"
+init = { message: "fack from oak"
        }
 
 main :: App Model Msg
