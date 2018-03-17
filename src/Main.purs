@@ -1,20 +1,21 @@
 module Main where
 
 import Oak
+import Prelude ((+), show)
 
 type Model =
-  { message :: String
+  { n :: Int
   }
 
 
-view :: Model -> HTML Msg
-view model = div [ text model.message ]
+view :: Model -> Html Msg
+view model = div [ text (show model.n) ]
 
 update :: Msg -> Model -> Model
-update _ model = model
+update _ model = model { n = model.n + 1 }
 
 init :: Model
-init = { message: "fack from oak"
+init = { n: 0
        }
 
 main :: App Model Msg
