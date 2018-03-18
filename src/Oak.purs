@@ -6,9 +6,7 @@ import Control.Monad.ST
 import Partial.Unsafe
 import Data.Maybe
 import Data.Traversable
-
-data Msg
-  = None
+import Data.Foldable
 
 -- main : Program Never number Msg
 -- bind :: forall a b. m a -> (a -> m b) -> m b
@@ -19,7 +17,6 @@ data App model msg = App
   , view :: model -> Html msg
   }
 
-
 -- bind :: forall model msg.
 --   App model msg ->
 --   (model -> msg -> App model msg) ->
@@ -28,13 +25,16 @@ data App model msg = App
 
 data Html msg
   = Text String
-  | Tag String (Array (Html msg))
+  | Tag String (Array (Attribute msg)) (Array (Html msg))
+
+data Attribute msg
+  = EventHandler String msg
 
 text :: forall msg. String -> Html msg
 text str = Text str
 
-div :: forall msg. Array (Html msg) -> Html msg
-div children = Tag "div" children
+div :: forall msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
+div attrs children = Tag "div" attrs children
 
 createApp :: forall msg model.
   { init :: model
@@ -49,6 +49,7 @@ createApp opts = App
 
 foreign import data Tree :: Type
 foreign import data Node :: Type
+foreign import data NativeAttrs :: Type
 
 foreign import data NODE :: Effect
 foreign import data VDOM :: Effect
@@ -74,7 +75,7 @@ render :: forall e h model msg.
   (msg -> Eff ( st :: ST h | e ) (Runtime model msg) )
     -> Html msg
     -> Eff ( st :: ST h | e ) Tree
-render h (Tag name children) = renderN h name (sequence $ map (render h) children)
+render h (Tag name attrs children) = renderN h name (sequence $ map (render h) children)
 render h (Text str) = textN str
 
 foreign import patchN :: forall e h.

@@ -7,9 +7,11 @@ type Model =
   { n :: Int
   }
 
+data Msg
+  = None
 
 view :: Model -> Html Msg
-view model = div [ text (show model.n) ]
+view model = div [] [ text (show model.n) ]
 
 update :: Msg -> Model -> Model
 update _ model = model { n = model.n + 1 }
