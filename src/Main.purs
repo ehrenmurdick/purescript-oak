@@ -1,20 +1,26 @@
 module Main where
 
 import Oak
-import Prelude ((+), show)
+import Prelude ((-), (+), show)
 
 type Model =
   { n :: Int
   }
 
 data Msg
-  = None
+  = Inc
+  | Dec
 
 view :: Model -> Html Msg
-view model = div [] [ text (show model.n) ]
+view model = div []
+  [ button [ onClick Inc ] [ text "+" ]
+  , p [] [ text (show model.n) ]
+  , button [ onClick Dec ] [ text "-" ]
+  ]
 
 update :: Msg -> Model -> Model
-update _ model = model { n = model.n + 1 }
+update Inc model = model { n = model.n + 1 }
+update Dec model = model { n = model.n - 1 }
 
 init :: Model
 init = { n: 0

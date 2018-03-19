@@ -2,6 +2,7 @@ var h = require('virtual-dom/h');
 var diff = require('virtual-dom/diff');
 var patch = require('virtual-dom/patch');
 var createElement = require('virtual-dom/create-element');
+var _ = require('lodash');
 
 // foreign import createRootNode :: forall e.
 //   Tree
@@ -24,19 +25,23 @@ exports.textN = function(str) {
   };
 };
 
+exports.trace = function(a) {
+  console.log(a);
+  return a;
+};
 
 // foreign import renderN :: forall msg h e model.
 //   (msg -> Eff ( st :: ST h | e ) (Runtime model msg))
 //     -> String
+//     -> NativeAttrs
 //     -> Eff ( st :: ST h | e ) (Array Tree)
 //     -> Eff ( st :: ST h | e ) Tree
-exports.renderN = function(handler) {
-  console.log('render');
-  return function(tagName) {
+exports.renderN = function(tagName) {
+  return function(attrs) {
     return function(childrenEff) {
       return function() {
         var children = childrenEff();
-        return h(tagName, { onclick: handler() }, children);
+        return h(tagName, attrs, children);
       };
     };
   };
@@ -60,3 +65,24 @@ exports.patchN = function(newTree) {
   };
 };
 
+
+// foreign import concatHandlerFun :: forall msg eff event.
+//   (msg -> eff)
+//     -> String
+//     -> (event -> eff)
+//     -> NativeAttrs
+//     -> NativeAttrs
+exports.concatHandlerFun = function(name) {
+  return function(msgHandler) {
+    return function(rest) {
+      var result = _.cloneDeep(rest);
+      result[name] = msgHandler();
+      return result;
+    };
+  };
+};
+
+// foreign import emptyAttrsN :: NativeAttrs
+exports.emptyAttrsN = function() {
+  return {};
+};
