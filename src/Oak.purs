@@ -65,9 +65,8 @@ foreign import data NODE :: Effect
 foreign import data VDOM :: Effect
 foreign import data PATCH :: Effect
 
-type Runtime model msg =
-  { app :: App model msg
-  , tree :: Maybe Tree
+type Runtime =
+  { tree :: Maybe Tree
   , root :: Maybe Node
   }
 
@@ -82,7 +81,7 @@ foreign import renderN :: forall msg h e model.
     -> Eff ( st :: ST h | e ) Tree
 
 render :: forall e h model msg.
-  (msg -> Eff ( st :: ST h | e ) (Runtime model msg) )
+  (msg -> Eff ( st :: ST h | e ) Runtime)
     -> Html msg
     -> Eff ( st :: ST h | e ) Tree
 render h (Tag name attrs children) =
@@ -130,22 +129,22 @@ patch oldTree newTree maybeRoot =
 foreign import trace :: forall a. a -> a
 
 handler :: forall msg model eff h.
-  STRef h (Runtime model msg)
+  STRef h Runtime
+    -> App model msg
     -> msg
-    -> Eff ( st :: ST h | eff ) (Runtime model msg)
-handler ref msg = do
+    -> Eff ( st :: ST h | eff ) Runtime
+handler ref app msg = do
   env <- readSTRef ref
-  let (App app) = env.app
+  let (App app) = app
   let oldTree = unsafePartial (fromJust env.tree)
   let root = unsafePartial (fromJust env.root)
   let newModel = app.update (trace msg) app.model
-  newTree <- render (handler ref) (app.view newModel)
-  newRoot <- patch newTree oldTree env.root
   let newAttrs = app { model = newModel }
   let newApp = App newAttrs
+  newTree <- render (handler ref newApp) (app.view newModel)
+  newRoot <- patch newTree oldTree env.root
   let newRuntime =
-        { app: newApp
-        , root: Just newRoot
+        { root: Just newRoot
         , tree: Just newTree
         }
   writeSTRef ref newRuntime
@@ -162,8 +161,8 @@ runApp :: forall e h model msg.
            , st :: ST h
        | e) Node
 runApp (App app) = do
-  ref <- newSTRef { app: (App app), tree: Nothing, root: Nothing }
-  tree <- render (handler ref) (app.view app.model)
+  ref <- newSTRef { tree: Nothing, root: Nothing }
+  tree <- render (handler ref (App app)) (app.view app.model)
   rootNode <- createRootNode tree
-  _ <- writeSTRef ref { app: (App app), tree: Just tree, root: Just rootNode }
+  _ <- writeSTRef ref { tree: Just tree, root: Just rootNode }
   pure rootNode
