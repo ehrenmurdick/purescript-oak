@@ -1,7 +1,24 @@
 module Main where
 
+import Prelude
+  ( (-)
+  , (+)
+  , show
+  )
+
 import Oak
-import Prelude ((-), (+), show)
+  ( App
+  , createApp
+  )
+import Oak.Html
+  ( Html
+  , button
+  , div
+  , p
+  , text
+  )
+import Oak.Html.Events (onClick)
+
 
 type Model =
   { n :: Int
