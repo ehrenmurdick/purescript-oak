@@ -25,11 +25,6 @@ exports.textN = function(str) {
   };
 };
 
-exports.trace = function(a) {
-  console.log(a);
-  return a;
-};
-
 // foreign import renderN :: forall msg h e model.
 //   (msg -> Eff ( st :: ST h | e ) (Runtime model msg))
 //     -> String
