@@ -2,7 +2,6 @@ var h = require('virtual-dom/h');
 var diff = require('virtual-dom/diff');
 var patch = require('virtual-dom/patch');
 var createElement = require('virtual-dom/create-element');
-var _ = require('lodash');
 
 // foreign import createRootNode :: forall e.
 //   Tree
@@ -70,7 +69,7 @@ exports.patchN = function(newTree) {
 exports.concatHandlerFun = function(name) {
   return function(msgHandler) {
     return function(rest) {
-      var result = _.cloneDeep(rest);
+      var result = Object.assign({}, rest);
       result[name] = msgHandler();
       return result;
     };
