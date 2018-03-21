@@ -3,57 +3,50 @@ Oak is an implementation of the Elm architecture in Purescript.
 ```purescript
 module Main where
 
-import Prelude ( (+)
-               , (-)
-               , show
-               )
+import Prelude
+  ( (-)
+  , (+)
+  , show
+  )
 
-import Oak ( createApp, App )
+import Oak
+  ( App
+  , createApp
+  )
+import Oak.Html
+  ( Html
+  , button
+  , div
+  , p
+  , text
+  )
+import Oak.Html.Events (onClick)
 
-import Oak.HTML ( text
-                , div
-                , button
-                , input
-                , br
-                , HTML
-                )
-
-import Oak.HTML.Attributes ( onClick
-                           , onInput
-                           )
 
 type Model =
-  { number :: Int
-  , message :: String
+  { n :: Int
   }
 
-data Msg = Inc
-         | Dec
-         | SetMessage String
+data Msg
+  = Inc
+  | Dec
 
-view :: Model -> (HTML Msg)
-view model = div [] [ div [] [ text (show model.number)
-                             , button [(onClick Inc)] [text "+"]
-                             , button [(onClick Dec)] [text "-"]
-                             ]
-                    , br []
-                    , div [] [ text model.message
-                             , br []
-                             , input [(onInput SetMessage)] []
-                             ]
-                    ]
+view :: Model -> Html Msg
+view model = div []
+  [ button [ onClick Inc ] [ text "+" ]
+  , p [] [ text (show model.n) ]
+  , button [ onClick Dec ] [ text "-" ]
+  ]
 
 update :: Msg -> Model -> Model
-update Inc model = model { number = model.number + 1 }
-update Dec model = model { number = model.number - 1 }
-update (SetMessage s) model = model { message = s }
+update Inc model = model { n = model.n + 1 }
+update Dec model = model { n = model.n - 1 }
 
 init :: Model
-init = { number: 0
-       , message: ""
+init = { n: 0
        }
 
-main :: App
+main :: App Model Msg
 main =
   createApp
     { init: init
