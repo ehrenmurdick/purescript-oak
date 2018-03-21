@@ -7,7 +7,6 @@ var createElement = require('virtual-dom/create-element');
 //   Tree
 //     -> Eff ( createRootNode :: NODE | e ) Node
 exports.createRootNode = function(tree) {
-  console.log('arositenaritsn', tree);
   return function() {
     var root = createElement(tree);
     return root;
@@ -49,7 +48,6 @@ exports.renderN = function(tagName) {
 exports.patchN = function(newTree) {
   return function(oldTree) {
     return function(rootNode) {
-      console.log('patch', oldTree, newTree, rootNode);
       return function() {
         var patches = diff(oldTree, newTree);
         var newRoot = patch(rootNode, patches);

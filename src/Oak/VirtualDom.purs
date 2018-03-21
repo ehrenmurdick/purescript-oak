@@ -9,6 +9,8 @@ import Data.Traversable
 import Partial.Unsafe
 
 import Oak.Html
+  ( Html(..)
+  )
 import Oak.Html.Attribute
 import Oak.VirtualDom.Native
 

@@ -50,7 +50,7 @@ handler ref app msg = do
   let (App app) = app
   let oldTree = unsafePartial (fromJust env.tree)
   let root = unsafePartial (fromJust env.root)
-  let newModel = app.update (trace msg) app.model
+  let newModel = app.update msg app.model
   let newAttrs = app { model = newModel }
   let newApp = App newAttrs
   newTree <- render (handler ref newApp) (app.view newModel)
