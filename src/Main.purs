@@ -58,7 +58,7 @@ init =
   , message: ""
   }
 
-main :: forall h. Eff
+main :: ∀ h. Eff
   ( st :: ST h
   , dom :: N.VDOM
   , renderVTree :: N.PATCH

@@ -14,69 +14,69 @@ foreign import data PATCH :: Effect
 
 foreign import emptyAttrs :: NativeAttrs
 
-foreign import patchImpl :: forall e h.
+foreign import patchImpl :: ∀ e h.
   Fn3 Tree Tree Node (Eff ( st :: ST h | e ) Node)
 
-patch :: forall e h.
+patch :: ∀ e h.
   Tree
     -> Tree
     -> Node
     -> Eff ( st :: ST h | e ) Node
 patch = runFn3 patchImpl
 
-foreign import createRootNodeImpl :: forall e.
+foreign import createRootNodeImpl :: ∀ e.
   Fn1 Tree (Eff ( createRootNode :: NODE | e ) Node)
 
-createRootNode :: forall e.
+createRootNode :: ∀ e.
   Tree -> Eff ( createRootNode :: NODE | e ) Node
 createRootNode = runFn1 createRootNodeImpl
 
-foreign import concatSimpleAttrImpl :: forall eff event.
+foreign import concatSimpleAttrImpl :: ∀ eff event.
   Fn3 String String NativeAttrs NativeAttrs
 
-concatSimpleAttr :: forall eff event.
+concatSimpleAttr :: ∀ eff event.
   String
     -> String
     -> NativeAttrs
     -> NativeAttrs
 concatSimpleAttr = runFn3 concatSimpleAttrImpl
 
-foreign import concatHandlerFunImpl :: forall eff event.
+foreign import concatHandlerFunImpl :: ∀ eff event.
   Fn3 String (event -> eff) NativeAttrs NativeAttrs
 
-concatHandlerFun :: forall eff event.
+concatHandlerFun :: ∀ eff event.
   String
     -> (event -> eff)
     -> NativeAttrs
     -> NativeAttrs
 concatHandlerFun = runFn3 concatHandlerFunImpl
 
-foreign import concatEventTargetValueHandlerFunImpl :: forall eff event.
+foreign import concatEventTargetValueHandlerFunImpl :: ∀ eff event.
   Fn3 String (event -> eff) NativeAttrs NativeAttrs
 
-concatEventTargetValueHandlerFun :: forall eff event.
+concatEventTargetValueHandlerFun :: ∀ eff event.
   String
     -> (event -> eff)
     -> NativeAttrs
     -> NativeAttrs
 concatEventTargetValueHandlerFun = runFn3 concatEventTargetValueHandlerFunImpl
 
-foreign import textImpl :: forall e.
+foreign import textImpl :: ∀ e.
   Fn1 String (Eff e Tree)
 
-text :: forall e.
+text :: ∀ e.
   String
     -> Eff e Tree
 text = runFn1 textImpl
 
-foreign import renderImpl :: forall msg h e model.
+foreign import renderImpl :: ∀ msg h e model.
   Fn3
     String
     NativeAttrs
     ( Eff ( st :: ST h | e ) (Array Tree) )
     ( Eff ( st :: ST h | e ) Tree )
 
-render :: forall msg h e model.
+render :: ∀ msg h e model.
   String
     -> NativeAttrs
     -> Eff ( st :: ST h | e ) (Array Tree)

@@ -22,7 +22,7 @@ render h (Tag name attrs children) =
   N.render name (combineAttrs attrs h) (sequence $ map (render h) children)
 render h (Text str) = N.text str
 
-concatAttr :: forall msg eff.
+concatAttr :: ∀ msg eff.
   (msg -> eff)
     -> Attribute msg
     -> N.NativeAttrs
@@ -34,7 +34,7 @@ concatAttr handler (StringEventHandler name f) attrs =
 concatAttr handler (SimpleAttribute name value) attrs =
   N.concatSimpleAttr name value attrs
 
-combineAttrs :: forall msg eff.
+combineAttrs :: ∀ msg eff.
   Array (Attribute msg)
     -> (msg -> eff)
     -> N.NativeAttrs
@@ -42,7 +42,7 @@ combineAttrs attrs handler =
   foldr (concatAttr handler) N.emptyAttrs attrs
 
 
-patch :: forall e h.
+patch :: ∀ e h.
   N.Tree
     -> N.Tree
     -> Maybe N.Node

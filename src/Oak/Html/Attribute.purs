@@ -5,5 +5,5 @@ data Attribute msg
   | StringEventHandler String (String -> msg)
   | SimpleAttribute String String
 
-value :: forall msg. String -> Attribute msg
+value :: ∀ msg. String -> Attribute msg
 value val = SimpleAttribute "value" val

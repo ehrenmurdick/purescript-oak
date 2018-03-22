@@ -15,16 +15,13 @@ import Oak.Html.Events
 import Oak.VirtualDom
 import Oak.VirtualDom.Native as N
 
--- main : Program Never number Msg
--- bind :: forall a b. m a -> (a -> m b) -> m b
-
 data App model msg = App
   { model :: model
   , update :: msg -> model -> model
   , view :: model -> Html msg
   }
 
-createApp :: forall msg model.
+createApp :: ∀ msg model.
   { init :: model
   , update :: msg -> model -> model
   , view :: model -> Html msg
@@ -40,7 +37,7 @@ type Runtime =
   , root :: Maybe N.Node
   }
 
-handler :: forall msg model eff h.
+handler :: ∀ msg model eff h.
   STRef h Runtime
     -> App model msg
     -> msg
@@ -61,7 +58,7 @@ handler ref app msg = do
         }
   writeSTRef ref newRuntime
 
-runApp :: forall e h model msg.
+runApp :: ∀ e h model msg.
   App model msg
     -> Eff
       ( st :: ST h
@@ -78,7 +75,7 @@ runApp (App app) = do
 
 foreign import data DOM :: Effect
 
-foreign import embedImpl :: forall h e.
+foreign import embedImpl :: ∀ h e.
   String
     -> N.Node
     -> Eff

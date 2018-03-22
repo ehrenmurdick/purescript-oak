@@ -5,7 +5,7 @@ import Data.Function.Uncurried
   , runFn1
   )
 
-foreign import traceImpl :: forall a. Fn1 a a
+foreign import traceImpl :: ∀ a. Fn1 a a
 
-trace :: forall a. a -> a
+trace :: ∀ a. a -> a
 trace = runFn1 traceImpl
