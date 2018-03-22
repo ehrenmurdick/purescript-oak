@@ -13,7 +13,7 @@ import Oak.Html
 import Oak.Html.Attribute
 import Oak.Html.Events
 import Oak.VirtualDom
-import Oak.VirtualDom.Native
+import Oak.VirtualDom.Native as N
 
 -- main : Program Never number Msg
 -- bind :: forall a b. m a -> (a -> m b) -> m b
@@ -36,8 +36,8 @@ createApp opts = App
   }
 
 type Runtime =
-  { tree :: Maybe Tree
-  , root :: Maybe Node
+  { tree :: Maybe N.Tree
+  , root :: Maybe N.Node
   }
 
 handler :: forall msg model eff h.
@@ -63,14 +63,14 @@ handler ref app msg = do
 
 runApp :: forall e h model msg.
   App model msg
-    -> Eff ( dom :: VDOM
-           , createRootNode :: NODE
-           , renderVTree :: PATCH
+    -> Eff ( dom :: N.VDOM
+           , createRootNode :: N.NODE
+           , renderVTree :: N.PATCH
            , st :: ST h
-       | e) Node
+       | e) N.Node
 runApp (App app) = do
   ref <- newSTRef { tree: Nothing, root: Nothing }
   tree <- render (handler ref (App app)) (app.view app.model)
-  rootNode <- createRootNode tree
+  rootNode <- N.createRootNode tree
   _ <- writeSTRef ref { tree: Just tree, root: Just rootNode }
   pure rootNode

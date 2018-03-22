@@ -12,42 +12,42 @@ import Oak.Html
   ( Html(..)
   )
 import Oak.Html.Attribute
-import Oak.VirtualDom.Native
+import Oak.VirtualDom.Native as N
 
 render :: forall e h model msg r.
   (msg -> Eff ( st :: ST h | e ) r)
     -> Html msg
-    -> Eff ( st :: ST h | e ) Tree
+    -> Eff ( st :: ST h | e ) N.Tree
 render h (Tag name attrs children) =
-  renderN name (combineAttrs attrs h) (sequence $ map (render h) children)
-render h (Text str) = textN str
+  N.renderN name (combineAttrs attrs h) (sequence $ map (render h) children)
+render h (Text str) = N.textN str
 
 concatAttr :: forall msg eff.
   (msg -> eff)
     -> Attribute msg
-    -> NativeAttrs
-    -> NativeAttrs
+    -> N.NativeAttrs
+    -> N.NativeAttrs
 concatAttr handler (EventHandler name msg) attrs =
-  concatHandlerFun name (\_ -> handler msg) attrs
+  N.concatHandlerFun name (\_ -> handler msg) attrs
 concatAttr handler (StringEventHandler name f) attrs =
-  concatEventTargetValueHandlerFun name (\e -> handler (f e)) attrs
+  N.concatEventTargetValueHandlerFun name (\e -> handler (f e)) attrs
 concatAttr handler (SimpleAttribute name value) attrs =
-  concatSimpleAttr name value attrs
+  N.concatSimpleAttr name value attrs
 
 combineAttrs :: forall msg eff.
   Array (Attribute msg)
     -> (msg -> eff)
-    -> NativeAttrs
+    -> N.NativeAttrs
 combineAttrs attrs handler =
-  foldr (concatAttr handler) emptyAttrsN attrs
+  foldr (concatAttr handler) N.emptyAttrs attrs
 
 
 patch :: forall e h.
-  Tree
-    -> Tree
-    -> Maybe Node
-    -> Eff ( st :: ST h | e ) Node
+  N.Tree
+    -> N.Tree
+    -> Maybe N.Node
+    -> Eff ( st :: ST h | e ) N.Node
 patch oldTree newTree maybeRoot =
   let root = unsafePartial (fromJust maybeRoot)
-  in patchN oldTree newTree root
+  in N.patch oldTree newTree root
 

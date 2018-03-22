@@ -40,20 +40,13 @@ exports.renderN = function(tagName) {
   };
 };
 
-// foreign import patchN :: forall e h.
-//   Tree
-//     -> Tree
-//     -> Maybe Node
-//     -> Eff ( st :: ST h | e ) Node
-exports.patchN = function(newTree) {
-  return function(oldTree) {
-    return function(rootNode) {
-      return function() {
-        var patches = diff(oldTree, newTree);
-        var newRoot = patch(rootNode, patches);
-        return newRoot;
-      };
-    };
+// foreign import patchImpl :: forall e h.
+//   Fn3 Tree Tree Node Eff ( st :: ST h | e ) Node
+exports.patchImpl = function(newTree, oldTree, rootNode) {
+  return function() {
+    var patches = diff(oldTree, newTree);
+    var newRoot = patch(rootNode, patches);
+    return newRoot;
   };
 };
 
@@ -107,7 +100,7 @@ exports.concatSimpleAttr = function(name) {
   };
 };
 
-// foreign import emptyAttrsN :: NativeAttrs
-exports.emptyAttrsN = function() {
+// foreign import emptyAttrs :: NativeAttrs
+exports.emptyAttrs = function() {
   return {};
 };
