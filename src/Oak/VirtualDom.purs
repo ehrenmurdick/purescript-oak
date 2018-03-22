@@ -19,7 +19,7 @@ render :: forall e h model msg r.
     -> Html msg
     -> Eff ( st :: ST h | e ) N.Tree
 render h (Tag name attrs children) =
-  N.renderN name (combineAttrs attrs h) (sequence $ map (render h) children)
+  N.render name (combineAttrs attrs h) (sequence $ map (render h) children)
 render h (Text str) = N.textN str
 
 concatAttr :: forall msg eff.

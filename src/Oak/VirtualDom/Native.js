@@ -3,10 +3,7 @@ var diff = require('virtual-dom/diff');
 var patch = require('virtual-dom/patch');
 var createElement = require('virtual-dom/create-element');
 
-// foreign import createRootNode :: forall e.
-//   Tree
-//     -> Eff ( createRootNode :: NODE | e ) Node
-exports.createRootNode = function(tree) {
+exports.createRootNodeImpl = function(tree) {
   return function() {
     var root = createElement(tree);
     return root;
@@ -23,20 +20,10 @@ exports.textN = function(str) {
   };
 };
 
-// foreign import renderN :: forall msg h e model.
-//   (msg -> Eff ( st :: ST h | e ) (Runtime model msg))
-//     -> String
-//     -> NativeAttrs
-//     -> Eff ( st :: ST h | e ) (Array Tree)
-//     -> Eff ( st :: ST h | e ) Tree
-exports.renderN = function(tagName) {
-  return function(attrs) {
-    return function(childrenEff) {
-      return function() {
-        var children = childrenEff();
-        return h(tagName, attrs, children);
-      };
-    };
+exports.renderImpl = function(tagName, attrs, childrenEff) {
+  return function() {
+    var children = childrenEff();
+    return h(tagName, attrs, children);
   };
 };
 

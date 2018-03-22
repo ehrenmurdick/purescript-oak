@@ -3,9 +3,6 @@ module Oak.VirtualDom.Native where
 import Control.Monad.Eff
 import Control.Monad.ST
 import Data.Function.Uncurried
-  ( runFn3
-  , Fn3
-  )
 
 foreign import data Tree :: Type
 foreign import data Node :: Type
@@ -27,9 +24,12 @@ patch :: forall e h.
     -> Eff ( st :: ST h | e ) Node
 patch = runFn3 patchImpl
 
-foreign import createRootNode :: forall e.
-  Tree
-    -> Eff ( createRootNode :: NODE | e ) Node
+foreign import createRootNodeImpl :: forall e.
+  Fn1 Tree (Eff ( createRootNode :: NODE | e ) Node)
+
+createRootNode :: forall e.
+  Tree -> Eff ( createRootNode :: NODE | e ) Node
+createRootNode = runFn1 createRootNodeImpl
 
 foreign import concatSimpleAttr :: forall eff event.
   String
@@ -53,8 +53,16 @@ foreign import textN :: forall e.
   String
     -> Eff e Tree
 
-foreign import renderN :: forall msg h e model.
+foreign import renderImpl :: forall msg h e model.
+  Fn3
+    String
+    NativeAttrs
+    ( Eff ( st :: ST h | e ) (Array Tree) )
+    ( Eff ( st :: ST h | e ) Tree )
+
+render :: forall msg h e model.
   String
     -> NativeAttrs
     -> Eff ( st :: ST h | e ) (Array Tree)
     -> Eff ( st :: ST h | e ) Tree
+render = runFn3 renderImpl
