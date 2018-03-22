@@ -14,7 +14,7 @@ import Oak.Html
 import Oak.Html.Attribute
 import Oak.VirtualDom.Native as N
 
-render :: forall e h model msg r.
+render :: ∀ e h model msg r.
   (msg -> Eff ( st :: ST h | e ) r)
     -> Html msg
     -> Eff ( st :: ST h | e ) N.Tree
