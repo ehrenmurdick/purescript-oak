@@ -31,27 +31,43 @@ createRootNode :: forall e.
   Tree -> Eff ( createRootNode :: NODE | e ) Node
 createRootNode = runFn1 createRootNodeImpl
 
-foreign import concatSimpleAttr :: forall eff event.
+foreign import concatSimpleAttrImpl :: forall eff event.
+  Fn3 String String NativeAttrs NativeAttrs
+
+concatSimpleAttr :: forall eff event.
   String
     -> String
     -> NativeAttrs
     -> NativeAttrs
+concatSimpleAttr = runFn3 concatSimpleAttrImpl
 
-foreign import concatHandlerFun :: forall eff event.
+foreign import concatHandlerFunImpl :: forall eff event.
+  Fn3 String (event -> eff) NativeAttrs NativeAttrs
+
+concatHandlerFun :: forall eff event.
   String
     -> (event -> eff)
     -> NativeAttrs
     -> NativeAttrs
+concatHandlerFun = runFn3 concatHandlerFunImpl
 
-foreign import concatEventTargetValueHandlerFun :: forall eff event.
+foreign import concatEventTargetValueHandlerFunImpl :: forall eff event.
+  Fn3 String (event -> eff) NativeAttrs NativeAttrs
+
+concatEventTargetValueHandlerFun :: forall eff event.
   String
     -> (event -> eff)
     -> NativeAttrs
     -> NativeAttrs
+concatEventTargetValueHandlerFun = runFn3 concatEventTargetValueHandlerFunImpl
 
-foreign import textN :: forall e.
+foreign import textImpl :: forall e.
+  Fn1 String (Eff e Tree)
+
+text :: forall e.
   String
     -> Eff e Tree
+text = runFn1 textImpl
 
 foreign import renderImpl :: forall msg h e model.
   Fn3

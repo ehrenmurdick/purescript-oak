@@ -3,6 +3,8 @@ var diff = require('virtual-dom/diff');
 var patch = require('virtual-dom/patch');
 var createElement = require('virtual-dom/create-element');
 
+// foreign import createRootNodeImpl :: forall e.
+//   Fn1 Tree (Eff ( createRootNode :: NODE | e ) Node)
 exports.createRootNodeImpl = function(tree) {
   return function() {
     var root = createElement(tree);
@@ -11,15 +13,20 @@ exports.createRootNodeImpl = function(tree) {
 };
 
 
-// foreign import textN :: forall e.
-//   String
-//     -> Eff e Tree
-exports.textN = function(str) {
+// foreign import textImpl :: forall e.
+//   Fn1 String (Eff e Tree)
+exports.textImpl = function(str) {
   return function() {
     return str;
   };
 };
 
+// foreign import renderImpl :: forall msg h e model.
+//   Fn3
+//     String
+//     NativeAttrs
+//     ( Eff ( st :: ST h | e ) (Array Tree) )
+//     ( Eff ( st :: ST h | e ) Tree )
 exports.renderImpl = function(tagName, attrs, childrenEff) {
   return function() {
     var children = childrenEff();
@@ -38,53 +45,31 @@ exports.patchImpl = function(newTree, oldTree, rootNode) {
 };
 
 
-// foreign import concatHandlerFun :: forall msg eff event.
-//   (msg -> eff)
-//     -> String
-//     -> (event -> eff)
-//     -> NativeAttrs
-//     -> NativeAttrs
-exports.concatHandlerFun = function(name) {
-  return function(msgHandler) {
-    return function(rest) {
-      var result = Object.assign({}, rest);
-      result[name] = msgHandler();
-      return result;
-    };
-  };
+// foreign import concatHandlerFunImpl :: forall eff event.
+//   Fn3 String (event -> eff) NativeAttrs NativeAttrs
+exports.concatHandlerFunImpl = function(name, msgHandler, rest) {
+  var result = Object.assign({}, rest);
+  result[name] = msgHandler();
+  return result;
 };
 
-// foreign import concatEventTargetValueHandlerFun :: forall eff event.
-//   String
-//     -> (event -> eff)
-//     -> NativeAttrs
-//     -> NativeAttrs
-exports.concatEventTargetValueHandlerFun = function(name) {
-  return function(msgHandler) {
-    return function(rest) {
-      var result = Object.assign({}, rest);
-      result[name] = function(event) {
-        msgHandler(String(event.target.value))();
-      };
-      return result;
-    };
+// foreign import concatEventTargetValueHandlerFunImpl :: forall eff event.
+//   Fn3 String (event -> eff) NativeAttrs NativeAttrs
+exports.concatEventTargetValueHandlerFunImpl = function(name, msgHandler, rest) {
+  var result = Object.assign({}, rest);
+  result[name] = function(event) {
+    msgHandler(String(event.target.value))();
   };
+  return result;
 };
 
 
-// foreign import concatSimpleAttr :: forall eff event.
-//   String
-//     -> String
-//     -> NativeAttrs
-//     -> NativeAttrs
-exports.concatSimpleAttr = function(name) {
-  return function(value) {
-    return function(rest) {
-      var result = Object.assign({}, rest);
-      result[name] = value;
-      return result;
-    };
-  };
+// foreign import concatSimpleAttrImpl :: forall eff event.
+//   Fn3 String String NativeAttrs NativeAttrs
+exports.concatSimpleAttrImpl = function(name, value, rest) {
+  var result = Object.assign({}, rest);
+  result[name] = value;
+  return result;
 };
 
 // foreign import emptyAttrs :: NativeAttrs

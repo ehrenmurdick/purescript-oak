@@ -20,7 +20,7 @@ render :: forall e h model msg r.
     -> Eff ( st :: ST h | e ) N.Tree
 render h (Tag name attrs children) =
   N.render name (combineAttrs attrs h) (sequence $ map (render h) children)
-render h (Text str) = N.textN str
+render h (Text str) = N.text str
 
 concatAttr :: forall msg eff.
   (msg -> eff)
