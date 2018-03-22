@@ -74,6 +74,39 @@ exports.concatHandlerFun = function(name) {
   };
 };
 
+// foreign import concatEventTargetValueHandlerFun :: forall eff event.
+//   String
+//     -> (event -> eff)
+//     -> NativeAttrs
+//     -> NativeAttrs
+exports.concatEventTargetValueHandlerFun = function(name) {
+  return function(msgHandler) {
+    return function(rest) {
+      var result = Object.assign({}, rest);
+      result[name] = function(event) {
+        msgHandler(String(event.target.value))();
+      };
+      return result;
+    };
+  };
+};
+
+
+// foreign import concatSimpleAttr :: forall eff event.
+//   String
+//     -> String
+//     -> NativeAttrs
+//     -> NativeAttrs
+exports.concatSimpleAttr = function(name) {
+  return function(value) {
+    return function(rest) {
+      var result = Object.assign({}, rest);
+      result[name] = value;
+      return result;
+    };
+  };
+};
+
 // foreign import emptyAttrsN :: NativeAttrs
 exports.emptyAttrsN = function() {
   return {};

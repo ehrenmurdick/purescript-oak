@@ -23,7 +23,19 @@ foreign import createRootNode :: forall e.
   Tree
     -> Eff ( createRootNode :: NODE | e ) Node
 
+foreign import concatSimpleAttr :: forall eff event.
+  String
+    -> String
+    -> NativeAttrs
+    -> NativeAttrs
+
 foreign import concatHandlerFun :: forall eff event.
+  String
+    -> (event -> eff)
+    -> NativeAttrs
+    -> NativeAttrs
+
+foreign import concatEventTargetValueHandlerFun :: forall eff event.
   String
     -> (event -> eff)
     -> NativeAttrs

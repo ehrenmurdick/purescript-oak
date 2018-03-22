@@ -29,6 +29,10 @@ concatAttr :: forall msg eff.
     -> NativeAttrs
 concatAttr handler (EventHandler name msg) attrs =
   concatHandlerFun name (\_ -> handler msg) attrs
+concatAttr handler (StringEventHandler name f) attrs =
+  concatEventTargetValueHandlerFun name (\e -> handler (f e)) attrs
+concatAttr handler (SimpleAttribute name value) attrs =
+  concatSimpleAttr name value attrs
 
 combineAttrs :: forall msg eff.
   Array (Attribute msg)
