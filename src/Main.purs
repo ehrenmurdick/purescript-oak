@@ -1,19 +1,19 @@
 module Main where
 
 import Prelude
-  ( (-)
-  , (+)
-  , show
-  )
+
+import Control.Monad.Eff
+import Control.Monad.ST
 
 import Oak
   ( App
   , createApp
+  , embed
   )
 import Oak.Html
   ( Html
   , button
-  , div
+  , div_
   , p
   , text
   , input
@@ -23,6 +23,7 @@ import Oak.Html.Events
   , onInput
   )
 import Oak.Html.Attribute (value)
+import Oak.VirtualDom.Native as N
 
 
 type Model =
@@ -36,12 +37,12 @@ data Msg
   | SetMessage String
 
 view :: Model -> Html Msg
-view model = div []
+view model = div_ []
   [ button [ onClick Inc ] [ text "+" ]
   , p [] [ text (show model.n) ]
-  , div []
+  , div_ []
     [ input [ onInput SetMessage, value model.message ] []
-    , div [] [ text model.message ]
+    , div_ [] [ text model.message ]
     ]
   , button [ onClick Dec ] [ text "-" ]
   ]
@@ -57,10 +58,15 @@ init =
   , message: ""
   }
 
-main :: App Model Msg
+main :: forall h. Eff
+  ( st :: ST h
+  , dom :: N.VDOM
+  , renderVTree :: N.PATCH
+  , createRootNode :: N.NODE
+  ) Unit
 main =
-  createApp
+  embed "app" (createApp
     { init: init
     , view: view
     , update: update
-    }
+    })

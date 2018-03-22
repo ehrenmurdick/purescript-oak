@@ -63,14 +63,31 @@ handler ref app msg = do
 
 runApp :: forall e h model msg.
   App model msg
-    -> Eff ( dom :: N.VDOM
-           , createRootNode :: N.NODE
-           , renderVTree :: N.PATCH
-           , st :: ST h
-       | e) N.Node
+    -> Eff
+      ( st :: ST h
+      , dom :: N.VDOM
+      , renderVTree :: N.PATCH
+      , createRootNode :: N.NODE
+      | e) N.Node
 runApp (App app) = do
   ref <- newSTRef { tree: Nothing, root: Nothing }
   tree <- render (handler ref (App app)) (app.view app.model)
   rootNode <- N.createRootNode tree
   _ <- writeSTRef ref { tree: Just tree, root: Just rootNode }
   pure rootNode
+
+foreign import data DOM :: Effect
+
+foreign import embedImpl :: forall h e.
+  String
+    -> N.Node
+    -> Eff
+      ( st :: ST h
+      , dom :: N.VDOM
+      , renderVTree :: N.PATCH
+      , createRootNode :: N.NODE
+      | e ) Unit
+
+embed id_ app = do
+  rootNode <- runApp app
+  embedImpl id_ rootNode

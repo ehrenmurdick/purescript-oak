@@ -127,8 +127,8 @@ dir :: forall msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
 dir attrs children = Tag "dir" attrs children
 
 
-div :: forall msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
-div attrs children = Tag "div" attrs children
+div_ :: forall msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
+div_ attrs children = Tag "div" attrs children
 
 
 dl :: forall msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
