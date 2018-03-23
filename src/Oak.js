@@ -6,3 +6,7 @@ exports.embedImpl = function(id) {
     };
   };
 };
+
+exports.finalizeRootNode = function(eff) {
+  return eff;
+};

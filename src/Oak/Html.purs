@@ -127,8 +127,8 @@ dir :: ∀ msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
 dir attrs children = Tag "dir" attrs children
 
 
-div_ :: ∀ msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
-div_ attrs children = Tag "div" attrs children
+div :: ∀ msg. Array (Attribute msg) -> Array (Html msg) -> Html msg
+div attrs children = Tag "div" attrs children
 
 
 dl :: ∀ msg. Array (Attribute msg) -> Array (Html msg) -> Html msg

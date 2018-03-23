@@ -16,7 +16,7 @@ import Oak
 import Oak.Html
   ( Html
   , button
-  , div_
+  , div
   , p
   , text
   , input
@@ -40,12 +40,12 @@ data Msg
   | SetMessage String
 
 view :: Model -> Html Msg
-view model = div_ []
+view model = div []
   [ button [ onClick Inc ] [ text "+" ]
   , p [] [ text (show model.n) ]
-  , div_ []
+  , div []
     [ input [ onInput SetMessage, value model.message ] []
-    , div_ [] [ text model.message ]
+    , div [] [ text model.message ]
     ]
   , button [ onClick Dec ] [ text "-" ]
   ]

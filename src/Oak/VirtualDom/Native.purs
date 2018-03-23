@@ -9,8 +9,7 @@ foreign import data Node :: Type
 foreign import data NativeAttrs :: Type
 
 foreign import data NODE :: Effect
-foreign import data VDOM :: Effect
-foreign import data PATCH :: Effect
+foreign import data DOM :: Effect
 
 foreign import emptyAttrs :: NativeAttrs
 
