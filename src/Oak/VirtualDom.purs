@@ -44,11 +44,11 @@ combineAttrs attrs handler =
   foldr (concatAttr handler) N.emptyAttrs attrs
 
 
-patch :: ∀ e h.
+patch :: ∀ e.
   N.Tree
     -> N.Tree
     -> Maybe N.Node
-    -> Eff ( st :: ST h | e ) N.Node
+    -> Eff ( dom :: N.DOM | e ) N.Node
 patch oldTree newTree maybeRoot =
   let root = unsafePartial (fromJust maybeRoot)
   in N.patch oldTree newTree root

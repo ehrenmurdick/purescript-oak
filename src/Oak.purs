@@ -56,7 +56,7 @@ handler :: ∀ msg model eff h.
   STRef h Runtime
     -> App model msg
     -> msg
-    -> Eff ( st :: ST h | eff ) Runtime
+    -> Eff ( dom :: N.DOM, st :: ST h | eff ) Runtime
 handler ref app msg = do
   env <- readSTRef ref
   let (App app) = app
@@ -75,11 +75,11 @@ handler ref app msg = do
 
 runApp_ :: ∀ e h model msg.
   App model msg
-    -> Eff ( st :: ST h, createRootNode :: N.NODE | e) N.Node
+    -> Eff ( st :: ST h, dom :: N.DOM | e) N.Node
 runApp_ (App app) = do
   ref <- newSTRef { tree: Nothing, root: Nothing }
   tree <- render (handler ref (App app)) (app.view app.model)
-  rootNode <- N.createRootNode tree
+  rootNode <- finalizeRootNode (N.createRootNode tree)
   _ <- writeSTRef ref { tree: Just tree, root: Just rootNode }
   pure rootNode
 
@@ -89,7 +89,7 @@ foreign import finalizeRootNode :: ∀ r.
     -> Eff r N.Node
 
 runApp :: ∀ e model msg.
-  App model msg -> Eff (createRootNode :: N.NODE | e) N.Node
+  App model msg -> Eff (dom :: N.DOM | e) N.Node
 runApp app = do
   runST (runApp_ app)
 
@@ -103,5 +103,5 @@ embed :: ∀ msg model e.
     -> App model msg
     -> Eff (dom :: N.DOM | e) Unit
 embed id_ app = do
-  rootNode <- finalizeRootNode (runApp app)
+  rootNode <- runApp app
   embedImpl id_ rootNode

@@ -18,14 +18,14 @@ foreign import data DOM :: Effect
 
 foreign import emptyAttrs :: NativeAttrs
 
-foreign import patchImpl :: ∀ e h.
-  Fn3 Tree Tree Node (Eff ( st :: ST h | e ) Node)
+foreign import patchImpl :: ∀ e.
+  Fn3 Tree Tree Node (Eff ( dom :: DOM | e ) Node)
 
-patch :: ∀ e h.
+patch :: ∀ e.
   Tree
     -> Tree
     -> Node
-    -> Eff ( st :: ST h | e ) Node
+    -> Eff ( dom :: DOM | e ) Node
 patch = runFn3 patchImpl
 
 foreign import createRootNodeImpl :: ∀ e.
