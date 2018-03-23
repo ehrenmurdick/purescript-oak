@@ -1,13 +1,16 @@
 module Main where
 
 import Prelude
+  ( (+)
+  , (-)
+  , Unit
+  , show
+  )
 
-import Control.Monad.Eff
-import Control.Monad.ST
+import Control.Monad.Eff (Eff)
 
 import Oak
-  ( App
-  , createApp
+  ( createApp
   , embed
   )
 import Oak.Html
@@ -58,7 +61,7 @@ init =
   , message: ""
   }
 
-main :: ∀ e. Eff (dom :: DOM) Unit
+main :: Eff (dom :: DOM) Unit
 main =
   embed "app" (createApp
     { init: init

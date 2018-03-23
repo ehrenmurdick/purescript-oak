@@ -1,8 +1,13 @@
 module Oak.VirtualDom.Native where
 
-import Control.Monad.Eff
-import Control.Monad.ST
+import Control.Monad.Eff (Eff, kind Effect)
+import Control.Monad.ST (ST)
 import Data.Function.Uncurried
+  ( Fn1
+  , Fn3
+  , runFn1
+  , runFn3
+  )
 
 foreign import data Tree :: Type
 foreign import data Node :: Type
@@ -30,10 +35,10 @@ createRootNode :: ∀ e.
   Tree -> Eff ( createRootNode :: NODE | e ) Node
 createRootNode = runFn1 createRootNodeImpl
 
-foreign import concatSimpleAttrImpl :: ∀ eff event.
+foreign import concatSimpleAttrImpl ::
   Fn3 String String NativeAttrs NativeAttrs
 
-concatSimpleAttr :: ∀ eff event.
+concatSimpleAttr ::
   String
     -> String
     -> NativeAttrs
@@ -68,14 +73,14 @@ text :: ∀ e.
     -> Eff e Tree
 text = runFn1 textImpl
 
-foreign import renderImpl :: ∀ msg h e model.
+foreign import renderImpl :: ∀ h e.
   Fn3
     String
     NativeAttrs
     ( Eff ( st :: ST h | e ) (Array Tree) )
     ( Eff ( st :: ST h | e ) Tree )
 
-render :: ∀ msg h e model.
+render :: ∀ h e.
   String
     -> NativeAttrs
     -> Eff ( st :: ST h | e ) (Array Tree)

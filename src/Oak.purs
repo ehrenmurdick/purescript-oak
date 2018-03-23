@@ -1,18 +1,33 @@
 module Oak where
 
 import Prelude
+  ( Unit
+  , bind
+  , pure
+  )
 import Control.Monad.Eff
+  ( Eff
+  , kind Effect
+  )
 import Control.Monad.ST
-import Partial.Unsafe
+  ( ST
+  , STRef
+  , newSTRef
+  , readSTRef
+  , runST
+  , writeSTRef
+  )
+import Partial.Unsafe (unsafePartial)
 import Data.Maybe
-import Data.Traversable
-import Data.Foldable
+  ( Maybe(..)
+  , fromJust
+  )
 
-import Oak.Debug
-import Oak.Html
-import Oak.Html.Attribute
-import Oak.Html.Events
+import Oak.Html (Html)
 import Oak.VirtualDom
+  ( patch
+  , render
+  )
 import Oak.VirtualDom.Native as N
 
 data App model msg = App
@@ -73,7 +88,7 @@ foreign import finalizeRootNode :: ∀ r.
   Eff (createRootNode :: N.NODE | r) N.Node
     -> Eff r N.Node
 
-runApp :: ∀ e h model msg.
+runApp :: ∀ e model msg.
   App model msg -> Eff (createRootNode :: N.NODE | e) N.Node
 runApp app = do
   runST (runApp_ app)
@@ -85,6 +100,10 @@ foreign import embedImpl :: ∀ e.
     -> N.Node
     -> Eff (dom :: N.DOM | e) Unit
 
+embed :: ∀ msg model e.
+  String
+    -> App model msg
+    -> Eff (dom :: N.DOM | e) Unit
 embed id_ app = do
   rootNode <- finalizeRootNode (runApp app)
   embedImpl id_ rootNode

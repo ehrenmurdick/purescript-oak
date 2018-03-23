@@ -1,20 +1,22 @@
 module Oak.VirtualDom where
 
 import Prelude
-import Control.Monad.Eff
-import Control.Monad.ST
-import Data.Foldable
-import Data.Maybe
-import Data.Traversable
-import Partial.Unsafe
+  ( map
+  , ($)
+  )
+import Control.Monad.Eff (Eff)
+import Control.Monad.ST (ST)
+import Data.Maybe (Maybe, fromJust)
+import Data.Traversable (foldr, sequence)
+import Partial.Unsafe (unsafePartial)
 
 import Oak.Html
   ( Html(..)
   )
-import Oak.Html.Attribute
+import Oak.Html.Attribute (Attribute(..))
 import Oak.VirtualDom.Native as N
 
-render :: ∀ e h model msg r.
+render :: ∀ e h msg r.
   (msg -> Eff ( st :: ST h | e ) r)
     -> Html msg
     -> Eff ( st :: ST h | e ) N.Tree
