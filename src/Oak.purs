@@ -93,8 +93,6 @@ runApp :: ∀ e model msg.
 runApp app = do
   runST (runApp_ app)
 
-foreign import data DOM :: Effect
-
 foreign import embedImpl :: ∀ e.
   String
     -> N.Node
