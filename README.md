@@ -26,7 +26,7 @@ import Oak.Html.Events
   , onInput
   )
 import Oak.Html.Attribute (value)
-import Oak.VirtualDom.Native as N
+import Oak.VirtualDom.Native (DOM)
 
 
 type Model =
@@ -61,12 +61,7 @@ init =
   , message: ""
   }
 
-main :: ∀ h. Eff
-  ( st :: ST h
-  , dom :: N.VDOM
-  , renderVTree :: N.PATCH
-  , createRootNode :: N.NODE
-  ) Unit
+main :: ∀ e. Eff (dom :: DOM) Unit
 main =
   embed "app" (createApp
     { init: init
