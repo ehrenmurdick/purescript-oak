@@ -25,7 +25,15 @@ import Oak.Html.Events
   ( onClick
   , onInput
   )
-import Oak.Html.Attribute (value)
+import Oak.Css
+  ( backgroundImage
+  , fontSize
+  )
+import Oak.Html.Attribute
+  ( Attribute
+  , value
+  , style
+  )
 import Oak.VirtualDom.Native (DOM)
 
 
@@ -39,11 +47,17 @@ data Msg
   | Dec
   | SetMessage String
 
+divStyle :: Attribute Msg
+divStyle =
+  style [ backgroundImage "url(http://placehold.it/200)"
+  , fontSize "10px"
+  ]
+
 view :: Model -> Html Msg
 view model = div []
   [ button [ onClick Inc ] [ text "+" ]
   , p [] [ text (show model.n) ]
-  , div []
+  , div [ divStyle ]
     [ input [ onInput SetMessage, value model.message ] []
     , div [] [ text model.message ]
     ]

@@ -3,17 +3,20 @@ module Oak.VirtualDom where
 import Prelude
   ( map
   , ($)
+  , (<>)
   )
 import Control.Monad.Eff (Eff)
 import Control.Monad.ST (ST)
 import Data.Maybe (Maybe, fromJust)
 import Data.Traversable (foldr, sequence)
 import Partial.Unsafe (unsafePartial)
+import Data.Foldable (intercalate)
 
 import Oak.Html
   ( Html(..)
   )
 import Oak.Html.Attribute (Attribute(..))
+import Oak.Css (StyleAttribute(..))
 import Oak.VirtualDom.Native as N
 
 render :: ∀ e h msg r.
@@ -35,6 +38,15 @@ concatAttr handler (StringEventHandler name f) attrs =
   N.concatEventTargetValueHandlerFun name (\e -> handler (f e)) attrs
 concatAttr handler (SimpleAttribute name value) attrs =
   N.concatSimpleAttr name value attrs
+concatAttr handler (Style styles) attrs =
+  N.concatSimpleAttr "style" (stringifyStyles styles) attrs
+
+stringifyStyle :: StyleAttribute -> String
+stringifyStyle (StyleAttribute name value) =
+  name <> ":" <> value
+
+stringifyStyles :: Array StyleAttribute -> String
+stringifyStyles attrs = intercalate ";" (map stringifyStyle attrs)
 
 combineAttrs :: ∀ msg eff.
   Array (Attribute msg)
@@ -42,7 +54,6 @@ combineAttrs :: ∀ msg eff.
     -> N.NativeAttrs
 combineAttrs attrs handler =
   foldr (concatAttr handler) N.emptyAttrs attrs
-
 
 patch :: ∀ e.
   N.Tree
