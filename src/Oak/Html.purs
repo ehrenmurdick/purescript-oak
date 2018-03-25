@@ -1,14 +1,19 @@
 module Oak.Html where
 
+
 import Oak.Html.Attribute
+import Oak.Html.Present
+  ( present
+  , class Present
+  )
 
 data Html msg
   = Text String
   | Tag String (Array (Attribute msg)) (Array (Html msg))
 
 
-text :: ∀ msg. String -> Html msg
-text str = Text str
+text :: ∀ a msg. (Present a) => a -> Html msg
+text val = Text (present val)
 
 
 a :: ∀ msg. Array (Attribute msg) -> Array (Html msg) -> Html msg

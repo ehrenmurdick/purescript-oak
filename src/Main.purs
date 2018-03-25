@@ -4,7 +4,6 @@ import Prelude
   ( (+)
   , (-)
   , Unit
-  , show
   , bind
   )
 
@@ -65,7 +64,7 @@ divStyle =
 view :: Model -> Html Msg
 view model = div []
   [ button [ onClick Inc ] [ text "+" ]
-  , p [] [ text (show model.n) ]
+  , p [] [ text model.n ]
   , div [ divStyle, class_ "foo" ]
     [ input [ onInput SetMessage, value model.message ] []
     , div [] [ text model.message ]
