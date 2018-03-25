@@ -9,9 +9,13 @@ data Attribute msg
   | Style (Array StyleAttribute)
 
 
-value :: ∀ msg. String -> Attribute msg
-value val = SimpleAttribute "value" val
+class_ :: ∀ msg. String -> Attribute msg
+class_ val = SimpleAttribute "className" val
 
 
 style :: ∀ msg. Array StyleAttribute -> Attribute msg
 style attrs = Style attrs
+
+
+value :: ∀ msg. String -> Attribute msg
+value val = SimpleAttribute "value" val

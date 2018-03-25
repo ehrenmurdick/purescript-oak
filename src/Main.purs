@@ -36,6 +36,7 @@ import Oak.Css
   )
 import Oak.Html.Attribute
   ( Attribute
+  , class_
   , value
   , style
   )
@@ -65,7 +66,7 @@ view :: Model -> Html Msg
 view model = div []
   [ button [ onClick Inc ] [ text "+" ]
   , p [] [ text (show model.n) ]
-  , div [ divStyle ]
+  , div [ divStyle, class_ "foo" ]
     [ input [ onInput SetMessage, value model.message ] []
     , div [] [ text model.message ]
     ]
