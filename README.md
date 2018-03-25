@@ -1,16 +1,19 @@
 Oak is an implementation of the Elm architecture in Purescript.
 
 ```purescript
-module Main where
+module Main (main) where
 
 import Prelude
+  ( (+)
+  , (-)
+  , Unit
+  , show
+  )
 
-import Control.Monad.Eff
-import Control.Monad.ST
+import Control.Monad.Eff (Eff)
 
 import Oak
-  ( App
-  , createApp
+  ( createApp
   , embed
   )
 import Oak.Html
@@ -25,7 +28,17 @@ import Oak.Html.Events
   ( onClick
   , onInput
   )
-import Oak.Html.Attribute (value)
+import Oak.Css
+  ( backgroundImage
+  , fontSize
+  , backgroundSize
+  , backgroundPosition
+  )
+import Oak.Html.Attribute
+  ( Attribute
+  , value
+  , style
+  )
 import Oak.VirtualDom.Native (DOM)
 
 
@@ -39,11 +52,20 @@ data Msg
   | Dec
   | SetMessage String
 
+divStyle :: Attribute Msg
+divStyle =
+  style
+    [ backgroundImage "url(http://placehold.it/200)"
+    , backgroundSize "cover"
+    , backgroundPosition "center"
+    , fontSize "10px"
+    ]
+
 view :: Model -> Html Msg
 view model = div []
   [ button [ onClick Inc ] [ text "+" ]
   , p [] [ text (show model.n) ]
-  , div []
+  , div [ divStyle ]
     [ input [ onInput SetMessage, value model.message ] []
     , div [] [ text model.message ]
     ]
@@ -61,7 +83,7 @@ init =
   , message: ""
   }
 
-main :: ∀ e. Eff (dom :: DOM) Unit
+main :: Eff (dom :: DOM) Unit
 main =
   embed "app" (createApp
     { init: init

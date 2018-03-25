@@ -28,6 +28,8 @@ import Oak.Html.Events
 import Oak.Css
   ( backgroundImage
   , fontSize
+  , backgroundSize
+  , backgroundPosition
   )
 import Oak.Html.Attribute
   ( Attribute
@@ -49,9 +51,12 @@ data Msg
 
 divStyle :: Attribute Msg
 divStyle =
-  style [ backgroundImage "url(http://placehold.it/200)"
-  , fontSize "10px"
-  ]
+  style
+    [ backgroundImage "url(http://placehold.it/200)"
+    , backgroundSize "cover"
+    , backgroundPosition "center"
+    , fontSize "10px"
+    ]
 
 view :: Model -> Html Msg
 view model = div []
