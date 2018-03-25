@@ -5,13 +5,16 @@ import Prelude
   , (-)
   , Unit
   , show
+  , bind
   )
 
 import Control.Monad.Eff (Eff)
 
 import Oak
-  ( createApp
+  ( runApp
+  , createApp
   , embed
+  , App
   )
 import Oak.Html
   ( Html
@@ -80,10 +83,14 @@ init =
   , message: ""
   }
 
+app :: App Model Msg
+app = createApp
+  { init: init
+  , view: view
+  , update: update
+  }
+
 main :: Eff (dom :: DOM) Unit
-main =
-  embed "app" (createApp
-    { init: init
-    , view: view
-    , update: update
-    })
+main = do
+  rootNode <- runApp app
+  embed "app" rootNode

@@ -100,8 +100,7 @@ foreign import embedImpl :: ∀ e.
 
 embed :: ∀ msg model e.
   String
-    -> App model msg
+    -> N.Node
     -> Eff (dom :: N.DOM | e) Unit
-embed id_ app = do
-  rootNode <- runApp app
+embed id_ rootNode =
   embedImpl id_ rootNode
