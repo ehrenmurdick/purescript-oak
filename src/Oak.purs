@@ -98,7 +98,7 @@ foreign import embedImpl :: ∀ e.
     -> N.Node
     -> Eff (dom :: N.DOM | e) Unit
 
-embed :: ∀ msg model e.
+embed :: ∀ e.
   String
     -> N.Node
     -> Eff (dom :: N.DOM | e) Unit
