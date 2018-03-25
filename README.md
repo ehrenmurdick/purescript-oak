@@ -7,14 +7,16 @@ import Prelude
   ( (+)
   , (-)
   , Unit
-  , show
+  , bind
   )
 
 import Control.Monad.Eff (Eff)
 
 import Oak
-  ( createApp
+  ( runApp
+  , createApp
   , embed
+  , App
   )
 import Oak.Html
   ( Html
@@ -36,6 +38,7 @@ import Oak.Css
   )
 import Oak.Html.Attribute
   ( Attribute
+  , class_
   , value
   , style
   )
@@ -64,8 +67,8 @@ divStyle =
 view :: Model -> Html Msg
 view model = div []
   [ button [ onClick Inc ] [ text "+" ]
-  , p [] [ text (show model.n) ]
-  , div [ divStyle ]
+  , p [] [ text model.n ]
+  , div [ divStyle, class_ "foo" ]
     [ input [ onInput SetMessage, value model.message ] []
     , div [] [ text model.message ]
     ]
@@ -83,11 +86,14 @@ init =
   , message: ""
   }
 
+app :: App Model Msg
+app = createApp
+  { init: init
+  , view: view
+  , update: update
+  }
+
 main :: Eff (dom :: DOM) Unit
-main =
-  embed "app" (createApp
-    { init: init
-    , view: view
-    , update: update
-    })
-```
+main = do
+  rootNode <- runApp app
+  embed "app" rootNode
