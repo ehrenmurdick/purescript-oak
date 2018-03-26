@@ -9,12 +9,14 @@ import Data.Function.Uncurried
   , runFn3
   )
 
-foreign import data Tree :: Type
-foreign import data Node :: Type
-foreign import data NativeAttrs :: Type
+import Oak.Document
+  ( DOM
+  , Node
+  , NODE
+  )
 
-foreign import data NODE :: Effect
-foreign import data DOM :: Effect
+foreign import data Tree :: Type
+foreign import data NativeAttrs :: Type
 
 foreign import emptyAttrs :: NativeAttrs
 

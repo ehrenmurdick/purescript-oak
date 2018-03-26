@@ -18,6 +18,10 @@ import Oak.Html
 import Oak.Html.Attribute (Attribute(..))
 import Oak.Css (StyleAttribute(..))
 import Oak.VirtualDom.Native as N
+import Oak.Document
+  ( Node
+  , DOM
+  )
 
 render :: ∀ e h msg r.
   (msg -> Eff ( st :: ST h | e ) r)
@@ -58,8 +62,8 @@ combineAttrs attrs handler =
 patch :: ∀ e.
   N.Tree
     -> N.Tree
-    -> Maybe N.Node
-    -> Eff ( dom :: N.DOM | e ) N.Node
+    -> Maybe Node
+    -> Eff ( dom :: DOM | e ) Node
 patch oldTree newTree maybeRoot =
   let root = unsafePartial (fromJust maybeRoot)
   in N.patch oldTree newTree root

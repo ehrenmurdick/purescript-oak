@@ -1,8 +1,7 @@
 module Oak where
 
 import Prelude
-  ( Unit
-  , bind
+  ( bind
   , pure
   )
 import Control.Monad.Eff
@@ -29,6 +28,11 @@ import Oak.VirtualDom
   , render
   )
 import Oak.VirtualDom.Native as N
+import Oak.Document
+  ( Node
+  , NODE
+  , DOM
+  )
 
 data App model msg = App
   { model :: model
@@ -49,14 +53,14 @@ createApp opts = App
 
 type Runtime =
   { tree :: Maybe N.Tree
-  , root :: Maybe N.Node
+  , root :: Maybe Node
   }
 
 handler :: ∀ msg model eff h.
   STRef h Runtime
     -> App model msg
     -> msg
-    -> Eff ( dom :: N.DOM, st :: ST h | eff ) Runtime
+    -> Eff ( dom :: DOM, st :: ST h | eff ) Runtime
 handler ref app msg = do
   env <- readSTRef ref
   let (App app) = app
@@ -75,7 +79,7 @@ handler ref app msg = do
 
 runApp_ :: ∀ e h model msg.
   App model msg
-    -> Eff ( st :: ST h, dom :: N.DOM | e) N.Node
+    -> Eff ( st :: ST h, dom :: DOM | e) Node
 runApp_ (App app) = do
   ref <- newSTRef { tree: Nothing, root: Nothing }
   tree <- render (handler ref (App app)) (app.view app.model)
@@ -85,22 +89,12 @@ runApp_ (App app) = do
 
 
 foreign import finalizeRootNode :: ∀ r.
-  Eff (createRootNode :: N.NODE | r) N.Node
-    -> Eff r N.Node
+  Eff (createRootNode :: NODE | r) Node
+    -> Eff r Node
 
 runApp :: ∀ e model msg.
-  App model msg -> Eff (dom :: N.DOM | e) N.Node
+  App model msg -> Eff (dom :: DOM | e) Node
 runApp app = do
   runST (runApp_ app)
 
-foreign import embedImpl :: ∀ e.
-  String
-    -> N.Node
-    -> Eff (dom :: N.DOM | e) Unit
 
-embed :: ∀ e.
-  String
-    -> N.Node
-    -> Eff (dom :: N.DOM | e) Unit
-embed id_ rootNode =
-  embedImpl id_ rootNode

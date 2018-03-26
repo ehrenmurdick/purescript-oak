@@ -12,7 +12,6 @@ import Control.Monad.Eff (Eff)
 import Oak
   ( runApp
   , createApp
-  , embed
   , App
   )
 import Oak.Html
@@ -39,7 +38,11 @@ import Oak.Html.Attribute
   , value
   , style
   )
-import Oak.VirtualDom.Native (DOM)
+import Oak.Document
+  ( getElementById
+  , appendChildNode
+  , DOM
+  )
 
 
 type Model =
@@ -93,4 +96,5 @@ app = createApp
 main :: Eff (dom :: DOM) Unit
 main = do
   rootNode <- runApp app
-  embed "app" rootNode
+  container <- getElementById "app"
+  appendChildNode container rootNode
