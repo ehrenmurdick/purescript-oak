@@ -14,3 +14,7 @@ instance presentString :: Present String where
 
 instance presentInt :: Present Int where
   present = show
+
+instance presentBoolean :: Present Boolean where
+  present = show
+

@@ -21,6 +21,7 @@ import Oak.Html
   , button
   , div
   , text
+  , p
   )
 import Oak.Html.Events
   ( onClick
@@ -36,20 +37,26 @@ import Oak.Cmd
 
 type Model =
   { response :: String
+  , pending :: Boolean
   }
 
 data Msg
   = Go
 
 view :: Model -> Html Msg
-view model = div [] [ text model.response ]
+view model =
+  div []
+    [ p [] [ text model.response ]
+    , p [] [ text "request pending: ", text model.pending ]
+    , button [ onClick Go ] [ text "request" ]
+    ]
 
 
 update :: Msg -> Model -> Tuple Model (Cmd (http :: HTTP) Msg)
-update Go model = Tuple model none
+update Go model = Tuple (model { pending = true } ) none
 
 init :: Model
-init = { response: "aoirsetnairnts" }
+init = { response: "", pending: false }
 
 app :: App (http :: HTTP) Model Msg
 app = createApp
