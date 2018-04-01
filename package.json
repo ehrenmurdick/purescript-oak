@@ -12,6 +12,7 @@
     "purescript": "^0.11.7"
   },
   "scripts": {
-    "pulp": "pulp browserify -O > dist/bundle.js"
+    "pulp": "pulp browserify -O > dist/bundle.js",
+    "update-readme": "cat README.md.template > README.md; cat src/Main.purs >> README.md; echo '```' >> README.md"
   }
 }

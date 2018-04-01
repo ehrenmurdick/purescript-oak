@@ -11,6 +11,7 @@ import Prelude
   )
 
 import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Exception (EXCEPTION)
 
 import Oak
   ( runApp
@@ -96,7 +97,7 @@ app = createApp
   , update: update
   }
 
-main :: Eff (dom :: DOM) Unit
+main :: Eff (exception :: EXCEPTION, dom :: DOM) Unit
 main = do
   rootNode <- runApp app
   container <- getElementById "app"
