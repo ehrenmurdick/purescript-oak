@@ -4,6 +4,8 @@ import Prelude
   ( bind
   , pure
   )
+import Data.Tuple
+import Oak.Cmd
 import Control.Monad.Eff
   ( Eff
   , kind Effect
@@ -34,17 +36,17 @@ import Oak.Document
   , DOM
   )
 
-data App model msg = App
+data App c model msg = App
   { model :: model
-  , update :: msg -> model -> model
+  , update :: msg -> model -> Tuple model (Cmd c msg)
   , view :: model -> Html msg
   }
 
-createApp :: ∀ msg model.
+createApp :: ∀ msg model c.
   { init :: model
-  , update :: msg -> model -> model
+  , update :: msg -> model -> Tuple model (Cmd c msg)
   , view :: model -> Html msg
-  } -> App model msg
+  } -> App c model msg
 createApp opts = App
   { model: opts.init
   , view: opts.view
@@ -56,9 +58,9 @@ type Runtime =
   , root :: Maybe Node
   }
 
-handler :: ∀ msg model eff h.
+handler :: ∀ msg model eff c h.
   STRef h Runtime
-    -> App model msg
+    -> App c model msg
     -> msg
     -> Eff ( dom :: DOM, st :: ST h | eff ) Runtime
 handler ref app msg = do
@@ -66,7 +68,7 @@ handler ref app msg = do
   let (App app) = app
   let oldTree = unsafePartial (fromJust env.tree)
   let root = unsafePartial (fromJust env.root)
-  let newModel = app.update msg app.model
+  let (Tuple newModel cmd) = app.update msg app.model
   let newAttrs = app { model = newModel }
   let newApp = App newAttrs
   newTree <- render (handler ref newApp) (app.view newModel)
@@ -77,8 +79,8 @@ handler ref app msg = do
         }
   writeSTRef ref newRuntime
 
-runApp_ :: ∀ e h model msg.
-  App model msg
+runApp_ :: ∀ c e h model msg.
+  App c model msg
     -> Eff ( st :: ST h, dom :: DOM | e) Node
 runApp_ (App app) = do
   ref <- newSTRef { tree: Nothing, root: Nothing }
@@ -92,8 +94,8 @@ foreign import finalizeRootNode :: ∀ r.
   Eff (createRootNode :: NODE | r) Node
     -> Eff r Node
 
-runApp :: ∀ e model msg.
-  App model msg -> Eff (dom :: DOM | e) Node
+runApp :: ∀ c e model msg.
+  App c model msg -> Eff (dom :: DOM | e) Node
 runApp app = do
   runST (runApp_ app)
 

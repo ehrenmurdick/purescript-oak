@@ -12,6 +12,7 @@ import Prelude
 
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (EXCEPTION)
+import Data.Tuple
 
 import Oak
   ( runApp
@@ -22,25 +23,11 @@ import Oak.Html
   ( Html
   , button
   , div
-  , p
   , text
-  , input
   )
 import Oak.Html.Events
   ( onClick
   , onInput
-  )
-import Oak.Css
-  ( backgroundImage
-  , fontSize
-  , backgroundSize
-  , backgroundPosition
-  )
-import Oak.Html.Attribute
-  ( Attribute
-  , class_
-  , value
-  , style
   )
 import Oak.Document
   ( getElementById
@@ -48,49 +35,26 @@ import Oak.Document
   , DOM
   )
 
+import Oak.Cmd
 
 type Model =
-  { n :: Int
-  , message :: String
+  { response :: String
   }
 
 data Msg
-  = Inc
-  | Dec
-  | SetMessage String
-
-divStyle :: Attribute Msg
-divStyle =
-  style
-    [ backgroundImage "url(http://placehold.it/200)"
-    , backgroundSize "cover"
-    , backgroundPosition "center"
-    , fontSize "10px"
-    ]
+  = Go
 
 view :: Model -> Html Msg
-view model = div []
-  [ button [ onClick Inc ] [ text "+" ]
-  , p [] [ text model.n ]
-  , div [ divStyle, class_ "foo" ]
-    [ input [ onInput SetMessage, value model.message ] []
-    , div [] [ text model.message ]
-    ]
-  , button [ onClick Dec ] [ text "-" ]
-  ]
+view model = div [] [ text model.response ]
 
-update :: Msg -> Model -> Model
-update Inc model = model { n = model.n + 1 }
-update Dec model = model { n = model.n - 1 }
-update (SetMessage str) model = model { message = str }
+
+update :: Msg -> Model -> Tuple Model (Cmd (http :: HTTP) Msg)
+update Go model = Tuple model none
 
 init :: Model
-init =
-  { n: 0
-  , message: ""
-  }
+init = { response: "aoirsetnairnts" }
 
-app :: App Model Msg
+app :: App (http :: HTTP) Model Msg
 app = createApp
   { init: init
   , view: view
