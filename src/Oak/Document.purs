@@ -10,13 +10,17 @@ import Data.Function.Uncurried
   ( Fn1
   , runFn1
   )
+import Control.Monad.Eff.Exception (EXCEPTION)
 
 foreign import data Element :: Type
 foreign import data DOM :: Effect
 foreign import data Node :: Type
 foreign import data NODE :: Effect
 
-foreign import getElementByIdImpl :: Fn1 String (Eff (dom :: DOM) Element)
+foreign import getElementByIdImpl :: ∀ e.
+  Fn1
+  String
+  (Eff (exception :: EXCEPTION, dom :: DOM | e) Element)
 
 foreign import appendChildNodeImpl :: ∀ e.
   Element
@@ -30,6 +34,8 @@ appendChildNode :: ∀ e.
 appendChildNode element rootNode =
   appendChildNodeImpl element rootNode
 
-getElementById :: String -> Eff (dom :: DOM) Element
+getElementById :: ∀ e.
+  String
+    -> Eff (exception :: EXCEPTION, dom :: DOM | e) Element
 getElementById = runFn1 getElementByIdImpl
 
