@@ -3,6 +3,7 @@ module Oak where
 import Prelude
   ( bind
   , pure
+  , discard
   )
 import Data.Tuple
 import Oak.Cmd
@@ -77,7 +78,19 @@ handler ref app msg = do
         { root: Just newRoot
         , tree: Just newTree
         }
+  _ <- runCmd (handler ref newApp) cmd
   writeSTRef ref newRuntime
+
+foreign import runCmdImpl :: ∀ c e model msg.
+  (msg -> Eff e Runtime)
+    -> Cmd c msg
+    -> Eff e Runtime
+
+runCmd :: ∀ c e model msg.
+  (msg -> Eff e Runtime)
+    -> Cmd c msg
+    -> Eff e Runtime
+runCmd = runCmdImpl
 
 runApp_ :: ∀ c e h model msg.
   App c model msg
