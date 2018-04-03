@@ -82,20 +82,21 @@ view model =
     , button [ onClick Go ] [ text "request" ]
     ]
 
+next :: Msg -> Model -> Cmd (http :: HTTP) Msg
+next Go model =
+  get "http://localhost:3000/users/1" SetUser
+next _ _ = none
 
-update :: Msg -> Model -> Tuple Model (Cmd (http :: HTTP) Msg)
+update :: Msg -> Model -> Model
 update Go model =
-  Tuple
-    (model { pending = true } )
-    (get "http://localhost:3000/users/1" SetUser)
-update (SetUser (Left err)) model =
-  Tuple
-    (model { response = err, pending = false } )
-    none
-update (SetUser (Right user)) model =
-  Tuple
-    (model { user = user, response = "success", pending = false } )
-    none
+    model { pending = true }
+
+update (SetUser result) model =
+  case result of
+    Left err ->
+      model { response = err, pending = false }
+    Right user ->
+      model { user = user, response = "success", pending = false }
 
 
 init :: Model
@@ -110,6 +111,7 @@ app = createApp
   { init: init
   , view: view
   , update: update
+  , next: next
   }
 
 main :: Eff (exception :: EXCEPTION, dom :: DOM) Unit

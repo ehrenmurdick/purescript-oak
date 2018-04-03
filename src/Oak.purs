@@ -39,18 +39,21 @@ import Oak.Document
 
 data App c model msg = App
   { model :: model
-  , update :: msg -> model -> Tuple model (Cmd c msg)
+  , update :: msg -> model -> model
+  , next :: msg -> model -> Cmd c msg
   , view :: model -> Html msg
   }
 
 createApp :: ∀ msg model c.
   { init :: model
-  , update :: msg -> model -> Tuple model (Cmd c msg)
+  , update :: msg -> model -> model
+  , next :: msg -> model -> Cmd c msg
   , view :: model -> Html msg
   } -> App c model msg
 createApp opts = App
   { model: opts.init
   , view: opts.view
+  , next: opts.next
   , update: opts.update
   }
 
@@ -69,7 +72,8 @@ handler ref app msg = do
   let (App app) = app
   let oldTree = unsafePartial (fromJust env.tree)
   let root = unsafePartial (fromJust env.root)
-  let (Tuple newModel cmd) = app.update msg app.model
+  let newModel = app.update msg app.model
+  let cmd = app.next msg newModel
   let newAttrs = app { model = newModel }
   let newApp = App newAttrs
   newTree <- render (handler ref newApp) (app.view newModel)
