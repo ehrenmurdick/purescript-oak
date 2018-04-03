@@ -1,21 +1,16 @@
 module Main (main) where
 
 import Prelude
-  ( (+)
-  , (-)
-  , Unit
+  ( Unit
   , bind
   )
 
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (EXCEPTION)
-import Data.Tuple
 import Data.Either
 
 import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Show (genericShow)
-import Data.Foreign.Class (class Encode, class Decode, encode, decode)
-import Data.Foreign.Generic (defaultOptions, genericDecode, genericDecodeJSON, genericEncodeJSON)
+import Data.Foreign.Class (class Decode)
 
 import Oak
   ( runApp
@@ -31,7 +26,6 @@ import Oak.Html
   )
 import Oak.Html.Events
   ( onClick
-  , onInput
   )
 import Oak.Document
   ( getElementById
@@ -40,6 +34,12 @@ import Oak.Document
   )
 
 import Oak.Cmd
+  ( Cmd
+  , HTTP
+  , defaultDecode
+  , get
+  , none
+  )
 
 data User =
   User
@@ -50,9 +50,7 @@ data User =
 derive instance genericUser :: Generic User _
 
 instance decodeUser :: Decode User where
-  decode user = genericDecode opts user
-
-opts = defaultOptions { unwrapSingleConstructors = true }
+  decode = defaultDecode
 
 
 type Model =
@@ -61,9 +59,11 @@ type Model =
   , user :: User
   }
 
+
 data Msg
   = Go
   | SetUser (Either String User)
+
 
 showUser :: User -> Html Msg
 showUser (User { id, name }) =
@@ -72,6 +72,7 @@ showUser (User { id, name }) =
     , text " "
     , text name
     ]
+
 
 view :: Model -> Html Msg
 view model =
@@ -82,10 +83,12 @@ view model =
     , button [ onClick Go ] [ text "request" ]
     ]
 
+
 next :: Msg -> Model -> Cmd (http :: HTTP) Msg
 next Go model =
   get "http://localhost:3000/users/1" SetUser
 next _ _ = none
+
 
 update :: Msg -> Model -> Model
 update Go model =

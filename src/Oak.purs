@@ -3,10 +3,8 @@ module Oak where
 import Prelude
   ( bind
   , pure
-  , discard
   )
-import Data.Tuple
-import Oak.Cmd
+import Oak.Cmd (Cmd)
 import Control.Monad.Eff
   ( Eff
   , kind Effect
@@ -85,12 +83,12 @@ handler ref app msg = do
   _ <- runCmd (handler ref newApp) cmd
   writeSTRef ref newRuntime
 
-foreign import runCmdImpl :: ∀ c e model msg.
+foreign import runCmdImpl :: ∀ c e msg.
   (msg -> Eff e Runtime)
     -> Cmd c msg
     -> Eff e Runtime
 
-runCmd :: ∀ c e model msg.
+runCmd :: ∀ c e msg.
   (msg -> Eff e Runtime)
     -> Cmd c msg
     -> Eff e Runtime

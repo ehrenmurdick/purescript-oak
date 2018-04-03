@@ -1,14 +1,15 @@
 module Oak.Cmd where
 
-import Prelude
-import Data.Either
-import Control.Monad.Except
+import Prelude (show, ($))
+import Data.Either (Either(..))
+import Control.Monad.Except (runExcept)
 
 import Data.Generic.Rep (class Generic)
-import Data.Generic.Rep.Show (genericShow)
-import Data.Foreign.Class (class Encode, class Decode, encode, decode)
-import Data.Foreign.Generic (defaultOptions, genericDecode, genericDecodeJSON, genericEncodeJSON)
+import Data.Foreign.Class (class Decode)
+import Data.Foreign.Generic (defaultOptions, genericDecode, genericDecodeJSON)
 import Data.Foreign.Generic.Class (class GenericDecode)
+import Data.Foreign.Generic.Types (Options)
+import Data.Foreign (F, Foreign)
 
 foreign import kind Command
 
@@ -23,7 +24,18 @@ none :: ∀ c a. Cmd c a
 none = noneImpl
 
 
-opts = defaultOptions { unwrapSingleConstructors = true }
+decodeOptions :: Options
+decodeOptions = defaultOptions { unwrapSingleConstructors = true }
+
+
+defaultDecode ::
+  ∀ a rep.
+    Generic a rep
+      => GenericDecode rep
+      => Foreign
+      -> F a
+defaultDecode = genericDecode decodeOptions
+
 
 makeDecoder :: ∀ a t.
   Generic a t
@@ -32,9 +44,10 @@ makeDecoder :: ∀ a t.
     => String
     -> Either String a
 makeDecoder json =
-  case runExcept $ genericDecodeJSON opts json of
+  case runExcept $ genericDecodeJSON decodeOptions json of
     Left err -> Left (show err)
     Right result -> Right result
+
 
 foreign import getImpl :: ∀ c m a.
   (String -> Either String a)
