@@ -8,6 +8,11 @@
   },
   "devDependencies": {
     "bower": "^1.8.2",
-    "purescript": "^0.11.7"
+    "purescript": "^0.11.7",
+    "purescript-psa": "^0.6.0",
+    "purs-loader": "^3.1.4",
+    "webpack": "^4.5.0",
+    "webpack-cli": "^2.0.14",
+    "webpack-dev-server": "^3.1.3"
   }
 }

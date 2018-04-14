@@ -18,7 +18,8 @@
     "purescript-console": "^3.0.0",
     "purescript-tuples": "^4.1.0",
     "purescript-foreign": "^4.0.1",
-    "purescript-foreign-generic": "^5.0.1"
+    "purescript-foreign-generic": "^5.0.1",
+    "purescript-template-strings": "^4.0.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0"
