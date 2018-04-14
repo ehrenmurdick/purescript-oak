@@ -1,5 +1,12 @@
 {
   "name": "purescript-oak",
+  "license": "MIT",
+  "description": "Oak is an implementation of the Elm Architecture in Purescript!",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ehrenmurdick/purescript-oak.git"
+  },
+  "homepage": "https://github.com/ehrenmurdick/purescript-oak",
   "ignore": [
     "**/.*",
     "node_modules",

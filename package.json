@@ -1,20 +1,13 @@
 {
-  "name": "purescript-oak",
-  "version": "1.0.0",
-  "description": "Elm architecure SPA framework",
-  "main": "index.js",
-  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "pulp": "pulp browserify -O > dist/bundle.js"
+  },
   "dependencies": {
-    "json-server": "^0.12.1",
     "virtual-dom": "^2.1.1"
   },
   "devDependencies": {
     "bower": "^1.8.2",
     "purescript": "^0.11.7"
-  },
-  "scripts": {
-    "pulp": "pulp browserify -O > dist/bundle.js",
-    "update-readme": "cat README.md.template > README.md; cat src/Main.purs >> README.md; echo '```' >> README.md",
-    "serve": "json-server --static . -w db.json"
   }
 }
