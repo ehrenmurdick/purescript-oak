@@ -55,22 +55,23 @@ createApp opts = App
   , update: opts.update
   }
 
-type Runtime =
+type Runtime m =
   { tree :: Maybe N.Tree
   , root :: Maybe Node
+  , model :: m
   }
 
 handler :: ∀ msg model eff c h.
-  STRef h Runtime
+  STRef h (Runtime model)
     -> App c model msg
     -> msg
-    -> Eff ( dom :: DOM, st :: ST h | eff ) Runtime
+    -> Eff ( dom :: DOM, st :: ST h | eff ) (Runtime model)
 handler ref app msg = do
   env <- readSTRef ref
   let (App app) = app
   let oldTree = unsafePartial (fromJust env.tree)
   let root = unsafePartial (fromJust env.root)
-  let newModel = app.update msg app.model
+  let newModel = app.update msg env.model
   let cmd = app.next msg newModel
   let newAttrs = app { model = newModel }
   let newApp = App newAttrs
@@ -79,29 +80,30 @@ handler ref app msg = do
   let newRuntime =
         { root: Just newRoot
         , tree: Just newTree
+        , model: newAttrs.model
         }
   _ <- runCmd (handler ref newApp) cmd
   writeSTRef ref newRuntime
 
-foreign import runCmdImpl :: ∀ c e msg.
-  (msg -> Eff e Runtime)
+foreign import runCmdImpl :: ∀ c e model msg.
+  (msg -> Eff e (Runtime model))
     -> Cmd c msg
-    -> Eff e Runtime
+    -> Eff e (Runtime model)
 
-runCmd :: ∀ c e msg.
-  (msg -> Eff e Runtime)
+runCmd :: ∀ c e model msg.
+  (msg -> Eff e (Runtime model))
     -> Cmd c msg
-    -> Eff e Runtime
+    -> Eff e (Runtime model)
 runCmd = runCmdImpl
 
 runApp_ :: ∀ c e h model msg.
   App c model msg
     -> Eff ( st :: ST h, dom :: DOM | e) Node
 runApp_ (App app) = do
-  ref <- newSTRef { tree: Nothing, root: Nothing }
+  ref <- newSTRef { tree: Nothing, root: Nothing, model: app.model }
   tree <- render (handler ref (App app)) (app.view app.model)
   rootNode <- finalizeRootNode (N.createRootNode tree)
-  _ <- writeSTRef ref { tree: Just tree, root: Just rootNode }
+  _ <- writeSTRef ref { tree: Just tree, root: Just rootNode, model: app.model }
   pure rootNode
 
 
