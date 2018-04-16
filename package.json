@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "pulp": "pulp browserify -O > dist/bundle.js"
+    "build": "pulp build"
   },
   "devDependencies": {
     "bower": "^1.8.2",
