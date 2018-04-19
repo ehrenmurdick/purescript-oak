@@ -1,4 +1,8 @@
-module Oak.Cmd where
+module Oak.Cmd
+  ( kind Command
+  , Cmd
+  , none
+  ) where
 
 foreign import kind Command
 

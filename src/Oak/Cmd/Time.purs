@@ -1,4 +1,10 @@
-module Oak.Cmd.Time where
+module Oak.Cmd.Time
+  ( Time
+  , TIME
+  , milliseconds
+  , seconds
+  , delay
+  ) where
 
 import Prelude
   ( (<<<)

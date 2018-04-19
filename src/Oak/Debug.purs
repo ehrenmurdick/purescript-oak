@@ -1,4 +1,6 @@
-module Oak.Debug where
+module Oak.Debug
+  ( trace
+  ) where
 
 import Data.Function.Uncurried
   ( Fn1

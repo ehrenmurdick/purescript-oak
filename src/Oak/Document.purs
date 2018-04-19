@@ -1,4 +1,11 @@
-module Oak.Document where
+module Oak.Document
+  ( Node
+  , DOM
+  , Element
+  , NODE
+  , appendChildNode
+  , getElementById
+  ) where
 
 
 import Prelude (Unit)

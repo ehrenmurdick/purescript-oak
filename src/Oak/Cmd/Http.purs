@@ -1,4 +1,8 @@
-module Oak.Cmd.Http where
+module Oak.Cmd.Http
+  ( HTTP
+  , defaultDecode
+  , get
+  ) where
 
 import Prelude (show, ($))
 
