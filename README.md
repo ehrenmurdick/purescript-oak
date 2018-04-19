@@ -1,5 +1,20 @@
 Oak is an implementation of the Elm architecture in Purescript.
 
+```
+bower install purescript-oak
+```
+
+This library requires the `virtual-dom` module. You can get it by using npm to install virtual-dom.
+
+```
+npm install virtual-dom
+```
+
+Documentation is published on [pursuit](https://pursuit.purescript.org/packages/purescript-oak/).
+
+
+A breif example Oak app:
+
 ```purescript
 module Main (main) where
 
