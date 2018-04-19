@@ -49,19 +49,28 @@ data App c model msg = App
 
 -- | createApp takes a record with a description of your Oak app.
 -- | It has a few parts:
+-- |
+-- |
 -- | `init`:
+-- |
 -- | Should the initial model state.
 -- |
+-- |
 -- | `view`:
+-- |
+-- |
 -- | Maps the current model to an html view.
 -- |
 -- | `next`:
+-- |
 -- | This function maps a message and model to a command. For example,
 -- | for sending an Http request when a user clicks a button.
 -- | `next` would be called with the button click message and would
 -- | return an `Oak.Cmd` that will execute the request.
 -- |
+-- |
 -- | `update`:
+-- |
 -- | Takes an incoming message, and the previous model state,
 -- | and returns the new model state.
 
