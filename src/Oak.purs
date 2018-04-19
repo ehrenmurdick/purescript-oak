@@ -39,12 +39,31 @@ import Oak.Document
   , DOM
   )
 
+
 data App c model msg = App
   { model :: model
   , update :: msg -> model -> model
   , next :: msg -> model -> Cmd c msg
   , view :: model -> Html msg
   }
+
+-- | createApp takes a record with a description of your Oak app.
+-- | It has a few parts:
+-- | `init`:
+-- | Should the initial model state.
+-- |
+-- | `view`:
+-- | Maps the current model to an html view.
+-- |
+-- | `next`:
+-- | This function maps a message and model to a command. For example,
+-- | for sending an Http request when a user clicks a button.
+-- | `next` would be called with the button click message and would
+-- | return an `Oak.Cmd` that will execute the request.
+-- |
+-- | `update`:
+-- | Takes an incoming message, and the previous model state,
+-- | and returns the new model state.
 
 createApp :: ∀ msg model c.
   { init :: model
@@ -58,6 +77,18 @@ createApp opts = App
   , next: opts.next
   , update: opts.update
   }
+
+
+-- | Kicks off the running app, and returns an effect
+-- | containing the root node of the app, which can
+-- | be used to embed the application. See the `main` function
+-- | of the example app in the readme.
+runApp :: ∀ c e model msg.
+  App c model msg -> Eff (dom :: DOM | e) Node
+runApp app = do
+  runST (runApp_ app)
+
+
 
 type Runtime m =
   { tree :: Maybe N.Tree
@@ -114,10 +145,4 @@ runApp_ (App app) = do
 foreign import finalizeRootNode :: ∀ r.
   Eff (createRootNode :: NODE | r) Node
     -> Eff r Node
-
-runApp :: ∀ c e model msg.
-  App c model msg -> Eff (dom :: DOM | e) Node
-runApp app = do
-  runST (runApp_ app)
-
 
