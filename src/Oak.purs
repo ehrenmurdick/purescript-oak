@@ -1,4 +1,8 @@
-module Oak where
+module Oak
+  ( App
+  , createApp
+  , runApp
+  ) where
 
 import Prelude
   ( bind
