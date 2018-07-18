@@ -35,7 +35,6 @@ import Oak.VirtualDom
 import Oak.VirtualDom.Native as N
 import Oak.Document
   ( Node
-  , NODE
   , DOM
   )
 
@@ -146,12 +145,6 @@ runApp_ :: ∀ c e h model msg.
 runApp_ (App app) = do
   ref <- newSTRef { tree: Nothing, root: Nothing, model: app.model }
   tree <- render (handler ref (App app)) (app.view app.model)
-  rootNode <- finalizeRootNode (N.createRootNode tree)
+  let rootNode = (N.createRootNode tree)
   _ <- writeSTRef ref { tree: Just tree, root: Just rootNode, model: app.model }
   pure rootNode
-
-
-foreign import finalizeRootNode :: ∀ r.
-  Eff (createRootNode :: NODE | r) Node
-    -> Eff r Node
-

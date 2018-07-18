@@ -6,10 +6,7 @@ var createElement = require('virtual-dom/create-element');
 // foreign import createRootNodeImpl :: ∀ e.
 //   Fn1 Tree (Eff ( createRootNode :: NODE | e ) Node)
 exports.createRootNodeImpl = function(tree) {
-  return function() {
-    var root = createElement(tree);
-    return root;
-  };
+    return createElement(tree);
 };
 
 
