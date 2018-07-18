@@ -12,7 +12,6 @@ import Data.Function.Uncurried
 import Oak.Document
   ( DOM
   , Node
-  , NODE
   )
 
 foreign import data Tree :: Type
@@ -31,10 +30,10 @@ patch :: ∀ e.
 patch = runFn3 patchImpl
 
 foreign import createRootNodeImpl :: ∀ e.
-  Fn1 Tree (Eff ( createRootNode :: NODE | e ) Node)
+  Fn1 Tree Node
 
 createRootNode :: ∀ e.
-  Tree -> Eff ( createRootNode :: NODE | e ) Node
+  Tree -> Node
 createRootNode = runFn1 createRootNodeImpl
 
 foreign import concatSimpleAttrImpl ::

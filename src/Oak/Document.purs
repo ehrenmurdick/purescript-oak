@@ -2,7 +2,6 @@ module Oak.Document
   ( Node
   , DOM
   , Element
-  , NODE
   , appendChildNode
   , getElementById
   ) where
@@ -22,7 +21,6 @@ import Control.Monad.Eff.Exception (EXCEPTION)
 foreign import data Element :: Type
 foreign import data DOM :: Effect
 foreign import data Node :: Type
-foreign import data NODE :: Effect
 
 foreign import getElementByIdImpl :: ∀ e.
   Fn1
