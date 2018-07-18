@@ -29,10 +29,10 @@ patch :: ∀ e.
     -> Eff ( dom :: DOM | e ) Node
 patch = runFn3 patchImpl
 
-foreign import createRootNodeImpl :: ∀ e.
+foreign import createRootNodeImpl ::
   Fn1 Tree Node
 
-createRootNode :: ∀ e.
+createRootNode ::
   Tree -> Node
 createRootNode = runFn1 createRootNodeImpl
 
