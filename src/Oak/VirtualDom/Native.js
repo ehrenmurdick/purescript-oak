@@ -69,6 +69,20 @@ exports.concatSimpleAttrImpl = function(name, value, rest) {
   return result;
 };
 
+
+// foreign import concatBooleanAttrImpl ::
+//   Fn3 String Boolean NativeAttrs NativeAttrs
+exports.concatBooleanAttrImpl = function(name, b, rest) {
+  if(b) {
+    var result = Object.assign({}, rest);
+    result[name] = name;
+    return result;
+  } else {
+    return rest;
+  };
+};
+
+
 // foreign import emptyAttrs :: NativeAttrs
 exports.emptyAttrs = function() {
   return {};

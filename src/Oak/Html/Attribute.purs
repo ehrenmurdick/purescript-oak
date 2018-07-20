@@ -4,7 +4,8 @@ import Oak.Css ( StyleAttribute )
 import Oak.Html.Present
 
 data Attribute msg
-  = EventHandler String msg
+  = BooleanAttribute String Boolean
+  | EventHandler String msg
   | StringEventHandler String (String -> msg)
   | SimpleAttribute String String
   | Style (Array StyleAttribute)
@@ -21,12 +22,21 @@ style attrs = Style attrs
 
 -- boolean attrs
 ----------------
--- checked
--- contenteditable
--- disabled :: ∀ msg. String -> Attribute msg
--- disabled val = SimpleAttribute "disabled" val
--- hidden :: ∀ msg. String -> Attribute msg
--- hidden val = SimpleAttribute "hidden" val
+
+checked :: ∀ msg. Boolean -> Attribute msg
+checked b = BooleanAttribute "checked" b
+
+
+contenteditable :: ∀ msg. Boolean -> Attribute msg
+contenteditable b = BooleanAttribute "contenteditable" b
+
+
+disabled :: ∀ msg. Boolean -> Attribute msg
+disabled b = BooleanAttribute "disabled" b
+
+
+hidden :: ∀ msg. Boolean -> Attribute msg
+hidden b = BooleanAttribute "hidden" b
 
 
 -- regular string attributes

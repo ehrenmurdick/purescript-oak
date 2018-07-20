@@ -44,6 +44,8 @@ concatAttr handler (SimpleAttribute name value) attrs =
   N.concatSimpleAttr name value attrs
 concatAttr handler (Style styles) attrs =
   N.concatSimpleAttr "style" (stringifyStyles styles) attrs
+concatAttr handler (BooleanAttribute name b) attrs =
+  N.concatBooleanAttr name b attrs
 
 stringifyStyle :: StyleAttribute -> String
 stringifyStyle (StyleAttribute name value) =

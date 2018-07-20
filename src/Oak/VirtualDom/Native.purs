@@ -46,6 +46,16 @@ concatSimpleAttr ::
     -> NativeAttrs
 concatSimpleAttr = runFn3 concatSimpleAttrImpl
 
+foreign import concatBooleanAttrImpl ::
+  Fn3 String Boolean NativeAttrs NativeAttrs
+
+concatBooleanAttr ::
+  String
+    -> Boolean
+    -> NativeAttrs
+    -> NativeAttrs
+concatBooleanAttr = runFn3 concatBooleanAttrImpl
+
 foreign import concatHandlerFunImpl :: ∀ eff event.
   Fn3 String (event -> eff) NativeAttrs NativeAttrs
 
