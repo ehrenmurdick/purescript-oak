@@ -18,11 +18,11 @@ onKeydown f = KeyPressEventHandler "onkeydown" f
 
 
 onKeypress :: ∀ msg.  (KeyPressEvent -> msg) -> Attribute msg
-onKeypress msg = EventHandler "onkeypress" f
+onKeypress f = KeyPressEventHandler "onkeypress" f
 
 
 onKeyup :: ∀ msg.  (KeyPressEvent -> msg) -> Attribute msg
-onKeyup msg = EventHandler "onkeyup" f
+onKeyup f = KeyPressEventHandler "onkeyup" f
 
 
 
