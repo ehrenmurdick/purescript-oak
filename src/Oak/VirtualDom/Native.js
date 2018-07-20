@@ -46,7 +46,9 @@ exports.patchImpl = function(newTree, oldTree, rootNode) {
 //   Fn3 String (event -> eff) NativeAttrs NativeAttrs
 exports.concatHandlerFunImpl = function(name, msgHandler, rest) {
   var result = Object.assign({}, rest);
-  result[name] = msgHandler();
+  result[name] = function(event) {
+    msgHandler(event)();
+  };
   return result;
 };
 
@@ -68,6 +70,31 @@ exports.concatSimpleAttrImpl = function(name, value, rest) {
   result[name] = value;
   return result;
 };
+
+
+// foreign import concatBooleanAttrImpl ::
+//   Fn3 String Boolean NativeAttrs NativeAttrs
+exports.concatBooleanAttrImpl = function(name, b, rest) {
+  if(b) {
+    var result = Object.assign({}, rest);
+    result[name] = name;
+    return result;
+  } else {
+    return rest;
+  };
+};
+
+
+// foreign import concatDataAttrImpl ::
+//   Fn3 String String NativeAttrs NativeAttrs
+exports.concatDataAttrImpl = function(name, val, rest) {
+  var result = Object.assign({}, rest);
+  var attributes = Object.assign({}, rest.attributes);
+  attributes[name] = val;
+  result.attributes = attributes;
+  return result;
+};
+
 
 // foreign import emptyAttrs :: NativeAttrs
 exports.emptyAttrs = function() {
