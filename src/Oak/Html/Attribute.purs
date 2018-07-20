@@ -23,11 +23,11 @@ type KeyPressEvent =
 
 data Attribute msg
   = BooleanAttribute String Boolean
+  | DataAttribute String String
   | EventHandler String msg
   | KeyPressEventHandler String (KeyPressEvent -> msg)
-  | StringEventHandler String (String -> msg)
   | SimpleAttribute String String
-  | DataAttribute String String
+  | StringEventHandler String (String -> msg)
   | Style (Array StyleAttribute)
 
 
