@@ -1,5 +1,7 @@
 module Oak.Html.Attribute where
 
+import Prelude ( (<>) )
+
 import Oak.Css ( StyleAttribute )
 import Oak.Html.Present
 
@@ -8,6 +10,7 @@ data Attribute msg
   | EventHandler String msg
   | StringEventHandler String (String -> msg)
   | SimpleAttribute String String
+  | DataAttribute String String
   | Style (Array StyleAttribute)
 
 
@@ -18,6 +21,8 @@ style :: ∀ msg. Array StyleAttribute -> Attribute msg
 style attrs = Style attrs
 
 -- data-*
+data_ :: ∀ msg v. Present v => String -> v -> Attribute msg
+data_ name val = DataAttribute ("data-" <> name) (present val)
 
 
 -- boolean attrs
@@ -125,8 +130,11 @@ coords :: ∀ msg v. Present v => v -> Attribute msg
 coords val = SimpleAttribute "coords" (present val)
 
 
-data_ :: ∀ msg v. Present v => v -> Attribute msg
-data_ val = SimpleAttribute "data" (present val)
+-- using data_ for the more common data-* attr use case
+-- naming this data__ (note two underscores) for lack
+-- of a better idea. I'm open to suggestions
+data__ :: ∀ msg v. Present v => v -> Attribute msg
+data__ val = SimpleAttribute "data" (present val)
 
 
 datetime :: ∀ msg v. Present v => v -> Attribute msg
