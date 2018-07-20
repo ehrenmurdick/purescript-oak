@@ -5,9 +5,26 @@ import Prelude ( (<>) )
 import Oak.Css ( StyleAttribute )
 import Oak.Html.Present
 
+type KeyPressEvent =
+  { altKey      :: Boolean
+  , charCode    :: Int
+  , code        :: String
+  , ctrlKey     :: Boolean
+  , isComposing :: Boolean
+  , key         :: String
+  , keyCode     :: Int
+  , location    :: Int
+  , metaKey     :: Boolean
+  , repeat      :: Boolean
+  , shiftKey    :: Boolean
+  , which       :: Boolean
+  }
+
+
 data Attribute msg
   = BooleanAttribute String Boolean
   | EventHandler String msg
+  | KeyPressEventHandler String (KeyPressEvent -> msg)
   | StringEventHandler String (String -> msg)
   | SimpleAttribute String String
   | DataAttribute String String

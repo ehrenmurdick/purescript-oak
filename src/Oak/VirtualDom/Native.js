@@ -46,7 +46,9 @@ exports.patchImpl = function(newTree, oldTree, rootNode) {
 //   Fn3 String (event -> eff) NativeAttrs NativeAttrs
 exports.concatHandlerFunImpl = function(name, msgHandler, rest) {
   var result = Object.assign({}, rest);
-  result[name] = msgHandler();
+  result[name] = function(event) {
+    msgHandler(event)();
+  };
   return result;
 };
 

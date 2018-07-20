@@ -2,288 +2,294 @@ module Oak.Html.Events where
 
 import Oak.Html.Attribute
 
-onClick :: ∀ msg.  msg -> Attribute msg
-onClick msg = EventHandler "onclick" msg
+
+-- events with assoc string data, e.g. oninput
+---------------------------------------
 
 onInput :: ∀ msg.  (String -> msg) -> Attribute msg
 onInput f = StringEventHandler "oninput" f
 
 
--- onabort :: ∀ msg. String -> Attribute msg
--- onabort val = SimpleAttribute "onabort" val
+-- keypress events
+------------------
 
+onKeydown :: ∀ msg. (KeyPressEvent -> msg) -> Attribute msg
+onKeydown f = KeyPressEventHandler "onkeydown" f
 
--- onafterprint :: ∀ msg. String -> Attribute msg
--- onafterprint val = SimpleAttribute "onafterprint" val
 
+onKeypress :: ∀ msg.  (KeyPressEvent -> msg) -> Attribute msg
+onKeypress msg = EventHandler "onkeypress" f
 
--- onbeforeprint :: ∀ msg. String -> Attribute msg
--- onbeforeprint val = SimpleAttribute "onbeforeprint" val
 
+onKeyup :: ∀ msg.  (KeyPressEvent -> msg) -> Attribute msg
+onKeyup msg = EventHandler "onkeyup" f
 
--- onbeforeunload :: ∀ msg. String -> Attribute msg
--- onbeforeunload val = SimpleAttribute "onbeforeunload" val
 
 
--- onblur :: ∀ msg. String -> Attribute msg
--- onblur val = SimpleAttribute "onblur" val
+-- events with no assoc data, e.g. onclick
+------------------------------------------
 
 
--- oncanplay :: ∀ msg. String -> Attribute msg
--- oncanplay val = SimpleAttribute "oncanplay" val
+onAbort :: ∀ msg.  msg -> Attribute msg
+onAbort msg = EventHandler "onabort" msg
 
 
--- oncanplaythrough :: ∀ msg. String -> Attribute msg
--- oncanplaythrough val = SimpleAttribute "oncanplaythrough" val
+onAfterprint :: ∀ msg.  msg -> Attribute msg
+onAfterprint msg = EventHandler "onafterprint" msg
 
 
--- onchange :: ∀ msg. String -> Attribute msg
--- onchange val = SimpleAttribute "onchange" val
+onBeforeprint :: ∀ msg.  msg -> Attribute msg
+onBeforeprint msg = EventHandler "onbeforeprint" msg
 
 
--- onclick :: ∀ msg. String -> Attribute msg
--- onclick val = SimpleAttribute "onclick" val
+onBeforeunload :: ∀ msg.  msg -> Attribute msg
+onBeforeunload msg = EventHandler "onbeforeunload" msg
 
 
--- oncontextmenu :: ∀ msg. String -> Attribute msg
--- oncontextmenu val = SimpleAttribute "oncontextmenu" val
+onBlur :: ∀ msg.  msg -> Attribute msg
+onBlur msg = EventHandler "onblur" msg
 
 
--- oncopy :: ∀ msg. String -> Attribute msg
--- oncopy val = SimpleAttribute "oncopy" val
+onCanplay :: ∀ msg.  msg -> Attribute msg
+onCanplay msg = EventHandler "oncanplay" msg
 
 
--- oncuechange :: ∀ msg. String -> Attribute msg
--- oncuechange val = SimpleAttribute "oncuechange" val
+onCanplaythrough :: ∀ msg.  msg -> Attribute msg
+onCanplaythrough msg = EventHandler "oncanplaythrough" msg
 
 
--- oncut :: ∀ msg. String -> Attribute msg
--- oncut val = SimpleAttribute "oncut" val
+onChange :: ∀ msg.  msg -> Attribute msg
+onChange msg = EventHandler "onchange" msg
 
 
--- ondblclick :: ∀ msg. String -> Attribute msg
--- ondblclick val = SimpleAttribute "ondblclick" val
+onClick :: ∀ msg.  msg -> Attribute msg
+onClick msg = EventHandler "onclick" msg
 
 
--- ondrag :: ∀ msg. String -> Attribute msg
--- ondrag val = SimpleAttribute "ondrag" val
+onContextmenu :: ∀ msg.  msg -> Attribute msg
+onContextmenu msg = EventHandler "oncontextmenu" msg
 
 
--- ondragend :: ∀ msg. String -> Attribute msg
--- ondragend val = SimpleAttribute "ondragend" val
+onCopy :: ∀ msg.  msg -> Attribute msg
+onCopy msg = EventHandler "oncopy" msg
 
 
--- ondragenter :: ∀ msg. String -> Attribute msg
--- ondragenter val = SimpleAttribute "ondragenter" val
+onCuechange :: ∀ msg.  msg -> Attribute msg
+onCuechange msg = EventHandler "oncuechange" msg
 
 
--- ondragleave :: ∀ msg. String -> Attribute msg
--- ondragleave val = SimpleAttribute "ondragleave" val
+onCut :: ∀ msg.  msg -> Attribute msg
+onCut msg = EventHandler "oncut" msg
 
 
--- ondragover :: ∀ msg. String -> Attribute msg
--- ondragover val = SimpleAttribute "ondragover" val
+onDblclick :: ∀ msg.  msg -> Attribute msg
+onDblclick msg = EventHandler "ondblclick" msg
 
 
--- ondragstart :: ∀ msg. String -> Attribute msg
--- ondragstart val = SimpleAttribute "ondragstart" val
+onDrag :: ∀ msg.  msg -> Attribute msg
+onDrag msg = EventHandler "ondrag" msg
 
 
--- ondrop :: ∀ msg. String -> Attribute msg
--- ondrop val = SimpleAttribute "ondrop" val
+onDragend :: ∀ msg.  msg -> Attribute msg
+onDragend msg = EventHandler "ondragend" msg
 
 
--- ondurationchange :: ∀ msg. String -> Attribute msg
--- ondurationchange val = SimpleAttribute "ondurationchange" val
+onDragenter :: ∀ msg.  msg -> Attribute msg
+onDragenter msg = EventHandler "ondragenter" msg
 
 
--- onemptied :: ∀ msg. String -> Attribute msg
--- onemptied val = SimpleAttribute "onemptied" val
+onDragleave :: ∀ msg.  msg -> Attribute msg
+onDragleave msg = EventHandler "ondragleave" msg
 
 
--- onended :: ∀ msg. String -> Attribute msg
--- onended val = SimpleAttribute "onended" val
+onDragover :: ∀ msg.  msg -> Attribute msg
+onDragover msg = EventHandler "ondragover" msg
 
 
--- onerror :: ∀ msg. String -> Attribute msg
--- onerror val = SimpleAttribute "onerror" val
+onDragstart :: ∀ msg.  msg -> Attribute msg
+onDragstart msg = EventHandler "ondragstart" msg
 
 
--- onfocus :: ∀ msg. String -> Attribute msg
--- onfocus val = SimpleAttribute "onfocus" val
+onDrop :: ∀ msg.  msg -> Attribute msg
+onDrop msg = EventHandler "ondrop" msg
 
 
--- onhashchange :: ∀ msg. String -> Attribute msg
--- onhashchange val = SimpleAttribute "onhashchange" val
+onDurationchange :: ∀ msg.  msg -> Attribute msg
+onDurationchange msg = EventHandler "ondurationchange" msg
 
 
--- oninput :: ∀ msg. String -> Attribute msg
--- oninput val = SimpleAttribute "oninput" val
+onEmptied :: ∀ msg.  msg -> Attribute msg
+onEmptied msg = EventHandler "onemptied" msg
 
 
--- oninvalid :: ∀ msg. String -> Attribute msg
--- oninvalid val = SimpleAttribute "oninvalid" val
+onEnded :: ∀ msg.  msg -> Attribute msg
+onEnded msg = EventHandler "onended" msg
 
 
--- onkeydown :: ∀ msg. String -> Attribute msg
--- onkeydown val = SimpleAttribute "onkeydown" val
+onError :: ∀ msg.  msg -> Attribute msg
+onError msg = EventHandler "onerror" msg
 
 
--- onkeypress :: ∀ msg. String -> Attribute msg
--- onkeypress val = SimpleAttribute "onkeypress" val
+onFocus :: ∀ msg.  msg -> Attribute msg
+onFocus msg = EventHandler "onfocus" msg
 
 
--- onkeyup :: ∀ msg. String -> Attribute msg
--- onkeyup val = SimpleAttribute "onkeyup" val
+onHashchange :: ∀ msg.  msg -> Attribute msg
+onHashchange msg = EventHandler "onhashchange" msg
 
 
--- onload :: ∀ msg. String -> Attribute msg
--- onload val = SimpleAttribute "onload" val
+onInvalid :: ∀ msg.  msg -> Attribute msg
+onInvalid msg = EventHandler "oninvalid" msg
 
 
--- onloadeddata :: ∀ msg. String -> Attribute msg
--- onloadeddata val = SimpleAttribute "onloadeddata" val
+onLoad :: ∀ msg.  msg -> Attribute msg
+onLoad msg = EventHandler "onload" msg
 
 
--- onloadedmetadata :: ∀ msg. String -> Attribute msg
--- onloadedmetadata val = SimpleAttribute "onloadedmetadata" val
+onLoadeddata :: ∀ msg.  msg -> Attribute msg
+onLoadeddata msg = EventHandler "onloadeddata" msg
 
 
--- onloadstart :: ∀ msg. String -> Attribute msg
--- onloadstart val = SimpleAttribute "onloadstart" val
+onLoadedmetadata :: ∀ msg.  msg -> Attribute msg
+onLoadedmetadata msg = EventHandler "onloadedmetadata" msg
 
 
--- onmousedown :: ∀ msg. String -> Attribute msg
--- onmousedown val = SimpleAttribute "onmousedown" val
+onLoadstart :: ∀ msg.  msg -> Attribute msg
+onLoadstart msg = EventHandler "onloadstart" msg
 
 
--- onmousemove :: ∀ msg. String -> Attribute msg
--- onmousemove val = SimpleAttribute "onmousemove" val
+onMousedown :: ∀ msg.  msg -> Attribute msg
+onMousedown msg = EventHandler "onmousedown" msg
 
 
--- onmouseout :: ∀ msg. String -> Attribute msg
--- onmouseout val = SimpleAttribute "onmouseout" val
+onMousemove :: ∀ msg.  msg -> Attribute msg
+onMousemove msg = EventHandler "onmousemove" msg
 
 
--- onmouseover :: ∀ msg. String -> Attribute msg
--- onmouseover val = SimpleAttribute "onmouseover" val
+onMouseout :: ∀ msg.  msg -> Attribute msg
+onMouseout msg = EventHandler "onmouseout" msg
 
 
--- onmouseup :: ∀ msg. String -> Attribute msg
--- onmouseup val = SimpleAttribute "onmouseup" val
+onMouseover :: ∀ msg.  msg -> Attribute msg
+onMouseover msg = EventHandler "onmouseover" msg
 
 
--- onmousewheel :: ∀ msg. String -> Attribute msg
--- onmousewheel val = SimpleAttribute "onmousewheel" val
+onMouseup :: ∀ msg.  msg -> Attribute msg
+onMouseup msg = EventHandler "onmouseup" msg
 
 
--- onoffline :: ∀ msg. String -> Attribute msg
--- onoffline val = SimpleAttribute "onoffline" val
+onMousewheel :: ∀ msg.  msg -> Attribute msg
+onMousewheel msg = EventHandler "onmousewheel" msg
 
 
--- ononline :: ∀ msg. String -> Attribute msg
--- ononline val = SimpleAttribute "ononline" val
+onOffline :: ∀ msg.  msg -> Attribute msg
+onOffline msg = EventHandler "onoffline" msg
 
 
--- onpagehide :: ∀ msg. String -> Attribute msg
--- onpagehide val = SimpleAttribute "onpagehide" val
+onOnline :: ∀ msg.  msg -> Attribute msg
+onOnline msg = EventHandler "ononline" msg
 
 
--- onpageshow :: ∀ msg. String -> Attribute msg
--- onpageshow val = SimpleAttribute "onpageshow" val
+onPagehide :: ∀ msg.  msg -> Attribute msg
+onPagehide msg = EventHandler "onpagehide" msg
 
 
--- onpaste :: ∀ msg. String -> Attribute msg
--- onpaste val = SimpleAttribute "onpaste" val
+onPageshow :: ∀ msg.  msg -> Attribute msg
+onPageshow msg = EventHandler "onpageshow" msg
 
 
--- onpause :: ∀ msg. String -> Attribute msg
--- onpause val = SimpleAttribute "onpause" val
+onPaste :: ∀ msg.  msg -> Attribute msg
+onPaste msg = EventHandler "onpaste" msg
 
 
--- onplay :: ∀ msg. String -> Attribute msg
--- onplay val = SimpleAttribute "onplay" val
+onPause :: ∀ msg.  msg -> Attribute msg
+onPause msg = EventHandler "onpause" msg
 
 
--- onplaying :: ∀ msg. String -> Attribute msg
--- onplaying val = SimpleAttribute "onplaying" val
+onPlay :: ∀ msg.  msg -> Attribute msg
+onPlay msg = EventHandler "onplay" msg
 
 
--- onpopstate :: ∀ msg. String -> Attribute msg
--- onpopstate val = SimpleAttribute "onpopstate" val
+onPlaying :: ∀ msg.  msg -> Attribute msg
+onPlaying msg = EventHandler "onplaying" msg
 
 
--- onprogress :: ∀ msg. String -> Attribute msg
--- onprogress val = SimpleAttribute "onprogress" val
+onPopstate :: ∀ msg.  msg -> Attribute msg
+onPopstate msg = EventHandler "onpopstate" msg
 
 
--- onratechange :: ∀ msg. String -> Attribute msg
--- onratechange val = SimpleAttribute "onratechange" val
+onProgress :: ∀ msg.  msg -> Attribute msg
+onProgress msg = EventHandler "onprogress" msg
 
 
--- onreset :: ∀ msg. String -> Attribute msg
--- onreset val = SimpleAttribute "onreset" val
+onRatechange :: ∀ msg.  msg -> Attribute msg
+onRatechange msg = EventHandler "onratechange" msg
 
 
--- onresize :: ∀ msg. String -> Attribute msg
--- onresize val = SimpleAttribute "onresize" val
+onReset :: ∀ msg.  msg -> Attribute msg
+onReset msg = EventHandler "onreset" msg
 
 
--- onscroll :: ∀ msg. String -> Attribute msg
--- onscroll val = SimpleAttribute "onscroll" val
+onResize :: ∀ msg.  msg -> Attribute msg
+onResize msg = EventHandler "onresize" msg
 
 
--- onsearch :: ∀ msg. String -> Attribute msg
--- onsearch val = SimpleAttribute "onsearch" val
+onScroll :: ∀ msg.  msg -> Attribute msg
+onScroll msg = EventHandler "onscroll" msg
 
 
--- onseeked :: ∀ msg. String -> Attribute msg
--- onseeked val = SimpleAttribute "onseeked" val
+onSearch :: ∀ msg.  msg -> Attribute msg
+onSearch msg = EventHandler "onsearch" msg
 
 
--- onseeking :: ∀ msg. String -> Attribute msg
--- onseeking val = SimpleAttribute "onseeking" val
+onSeeked :: ∀ msg.  msg -> Attribute msg
+onSeeked msg = EventHandler "onseeked" msg
 
 
--- onselect :: ∀ msg. String -> Attribute msg
--- onselect val = SimpleAttribute "onselect" val
+onSeeking :: ∀ msg.  msg -> Attribute msg
+onSeeking msg = EventHandler "onseeking" msg
 
 
--- onstalled :: ∀ msg. String -> Attribute msg
--- onstalled val = SimpleAttribute "onstalled" val
+onSelect :: ∀ msg.  msg -> Attribute msg
+onSelect msg = EventHandler "onselect" msg
 
 
--- onstorage :: ∀ msg. String -> Attribute msg
--- onstorage val = SimpleAttribute "onstorage" val
+onStalled :: ∀ msg.  msg -> Attribute msg
+onStalled msg = EventHandler "onstalled" msg
 
 
--- onsubmit :: ∀ msg. String -> Attribute msg
--- onsubmit val = SimpleAttribute "onsubmit" val
+onStorage :: ∀ msg.  msg -> Attribute msg
+onStorage msg = EventHandler "onstorage" msg
 
 
--- onsuspend :: ∀ msg. String -> Attribute msg
--- onsuspend val = SimpleAttribute "onsuspend" val
+onSubmit :: ∀ msg.  msg -> Attribute msg
+onSubmit msg = EventHandler "onsubmit" msg
 
 
--- ontimeupdate :: ∀ msg. String -> Attribute msg
--- ontimeupdate val = SimpleAttribute "ontimeupdate" val
+onSuspend :: ∀ msg.  msg -> Attribute msg
+onSuspend msg = EventHandler "onsuspend" msg
 
 
--- ontoggle :: ∀ msg. String -> Attribute msg
--- ontoggle val = SimpleAttribute "ontoggle" val
+onTimeupdate :: ∀ msg.  msg -> Attribute msg
+onTimeupdate msg = EventHandler "ontimeupdate" msg
 
 
--- onunload :: ∀ msg. String -> Attribute msg
--- onunload val = SimpleAttribute "onunload" val
+onToggle :: ∀ msg.  msg -> Attribute msg
+onToggle msg = EventHandler "ontoggle" msg
 
 
--- onvolumechange :: ∀ msg. String -> Attribute msg
--- onvolumechange val = SimpleAttribute "onvolumechange" val
+onUnload :: ∀ msg.  msg -> Attribute msg
+onUnload msg = EventHandler "onunload" msg
 
 
--- onwaiting :: ∀ msg. String -> Attribute msg
--- onwaiting val = SimpleAttribute "onwaiting" val
+onVolumechange :: ∀ msg.  msg -> Attribute msg
+onVolumechange msg = EventHandler "onvolumechange" msg
 
 
--- onwheel :: ∀ msg. String -> Attribute msg
--- onwheel val = SimpleAttribute "onwheel" val
+onWaiting :: ∀ msg.  msg -> Attribute msg
+onWaiting msg = EventHandler "onwaiting" msg
+
+
+onWheel :: ∀ msg.  msg -> Attribute msg
+onWheel msg = EventHandler "onwheel" msg
+
