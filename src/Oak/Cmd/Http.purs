@@ -21,7 +21,9 @@ import Data.Function.Uncurried
 
 import Oak.Cmd
 
+
 foreign import data HTTP :: Command
+
 
 decodeOptions :: Options
 decodeOptions = defaultOptions { unwrapSingleConstructors = true }
