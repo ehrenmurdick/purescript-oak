@@ -5,14 +5,14 @@ module Oak.Cmd
   , batch
   ) where
 
-import Prelude
+import Prelude (class Semigroup)
 
 import Data.Function.Uncurried
   ( Fn2
   , runFn2
   )
-import Data.Monoid
-import Data.Traversable
+import Data.Monoid (class Monoid)
+import Data.Traversable (class Foldable, fold)
 
 foreign import kind Command
 

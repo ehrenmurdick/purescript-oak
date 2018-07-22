@@ -39,7 +39,7 @@ style attrs = Style attrs
 
 -- data-*
 data_ :: ∀ msg v. Present v => String -> v -> Attribute msg
-data_ name val = DataAttribute ("data-" <> name) (present val)
+data_ attrName val = DataAttribute ("data-" <> attrName) (present val)
 
 
 -- boolean attrs
