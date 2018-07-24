@@ -17,8 +17,8 @@ import Control.Monad.Except (runExcept)
 import Data.Foreign (Foreign, F)
 import Data.Foreign.Generic.Types (Options)
 
-encodeOptions :: Options
-encodeOptions = defaultOptions { unwrapSingleConstructors = true }
+codingOptions :: Options
+codingOptions = defaultOptions { unwrapSingleConstructors = true }
 
 defaultEncode ::
   ∀ a rep.
@@ -26,7 +26,7 @@ defaultEncode ::
       => GenericEncode rep
       => a
       -> Foreign
-defaultEncode = genericEncode encodeOptions
+defaultEncode = genericEncode codingOptions
 
 
 -- #genericEncodeJSON calls JSON.stringify, which throws an exception for
@@ -40,10 +40,7 @@ makeEncoder :: ∀ a t.
     => GenericEncode t
     => a
     -> String
-makeEncoder structured = genericEncodeJSON encodeOptions structured
-
-decodeOptions :: Options
-decodeOptions = defaultOptions { unwrapSingleConstructors = true }
+makeEncoder structured = genericEncodeJSON codingOptions structured
 
 defaultDecode ::
   ∀ a rep.
@@ -51,7 +48,7 @@ defaultDecode ::
       => GenericDecode rep
       => Foreign
       -> F a
-defaultDecode = genericDecode decodeOptions
+defaultDecode = genericDecode codingOptions
 
 makeDecoder :: ∀ a t.
   Generic a t
@@ -60,6 +57,6 @@ makeDecoder :: ∀ a t.
     => String
     -> Either String a
 makeDecoder json =
-  case runExcept $ genericDecodeJSON decodeOptions json of
+  case runExcept $ genericDecodeJSON codingOptions json of
     Left err -> Left (show err)
     Right result -> Right result
