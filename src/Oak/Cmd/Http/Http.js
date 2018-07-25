@@ -1,6 +1,6 @@
-exports.getImpl = function(left, right, url, decoder) {
+exports.fetchImpl = function(left, right, url, options, decoder) {
   return function(handler) {
-    fetch(url).then(function(resp) {
+    fetch(url, options).then(function(resp) {
       return resp.text();
     }).then(function(resp) {
       handler(decoder(right(resp)))();
