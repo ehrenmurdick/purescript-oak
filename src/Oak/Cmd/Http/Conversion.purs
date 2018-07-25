@@ -5,17 +5,15 @@ module Oak.Cmd.Http.Conversion
   , makeDecoder
   ) where
 
-import Data.Foreign.Class (class Decode, class Encode)
-import Data.Foreign.Generic (defaultOptions, genericDecode, genericDecodeJSON, genericEncode, genericEncodeJSON)
+import Control.Monad.Except (runExcept)
 import Data.Either (Either(..))
+import Data.Foreign (Foreign, F)
+import Data.Foreign.Class (class Decode)
 import Data.Foreign.Generic (defaultOptions, genericDecode, genericDecodeJSON, genericEncode, genericEncodeJSON)
 import Data.Foreign.Generic.Class (class GenericEncode, class GenericDecode)
-import Data.Generic.Rep (class Generic)
-import Data.Foreign.Class (class Decode, class Encode)
-import Prelude (show, ($), class Show)
-import Control.Monad.Except (runExcept)
-import Data.Foreign (Foreign, F)
 import Data.Foreign.Generic.Types (Options)
+import Data.Generic.Rep (class Generic)
+import Prelude (show, ($))
 
 codingOptions :: Options
 codingOptions = defaultOptions { unwrapSingleConstructors = true }

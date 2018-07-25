@@ -3,16 +3,14 @@ module Oak.Cmd.Http.Options
   , MediaType(..)
   , HttpOption(..)
   , Header(..)
-  , defaultHeaders
-  , defaultHeadersWithBody
   , NativeOptions
   , combineOptions
   , defaultHeaders
   , defaultHeadersWithBody
   ) where
 
-import Oak.Cmd.Http.Conversion (makeEncoder, makeDecoder)
-import Data.Foreign.Generic.Class (class GenericEncode, class GenericDecode)
+import Oak.Cmd.Http.Conversion (makeEncoder)
+import Data.Foreign.Generic.Class (class GenericEncode)
 import Data.Generic.Rep (class Generic)
 import Data.Traversable (foldr)
 import Prelude (show, class Show, (<>))
