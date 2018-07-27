@@ -39,7 +39,14 @@ import Oak.Document
   )
 
 
-data App c model msg = App
+data App c model msg flags = App
+  { init :: flags -> model
+  , update :: msg -> model -> model
+  , next :: msg -> model -> Cmd c msg
+  , view :: model -> Html msg
+  }
+
+data RunningApp c model msg = RunningApp
   { model :: model
   , update :: msg -> model -> model
   , next :: msg -> model -> Cmd c msg
@@ -73,14 +80,14 @@ data App c model msg = App
 -- | Takes an incoming message, and the previous model state,
 -- | and returns the new model state.
 
-createApp :: ∀ msg model c.
-  { init :: model
+createApp :: ∀ msg model c flags.
+  { init :: flags -> model
   , update :: msg -> model -> model
   , next :: msg -> model -> Cmd c msg
   , view :: model -> Html msg
-  } -> App c model msg
+  } -> App c model msg flags
 createApp opts = App
-  { model: opts.init
+  { init: opts.init
   , view: opts.view
   , next: opts.next
   , update: opts.update
@@ -91,10 +98,10 @@ createApp opts = App
 -- | containing the root node of the app, which can
 -- | be used to embed the application. See the `main` function
 -- | of the example app in the readme.
-runApp :: ∀ c e model msg.
-  App c model msg -> Eff (dom :: DOM | e) Node
-runApp app = do
-  runST (runApp_ app)
+runApp :: ∀ c e model msg flags.
+  App c model msg flags -> flags -> Eff (dom :: DOM | e) Node
+runApp app flags = do
+  runST (runApp_ app flags)
 
 
 
@@ -106,18 +113,18 @@ type Runtime m =
 
 handler :: ∀ msg model eff c h.
   STRef h (Runtime model)
-    -> App c model msg
+    -> RunningApp c model msg
     -> msg
     -> Eff ( dom :: DOM, st :: ST h | eff ) (Runtime model)
 handler ref app msg = do
   env <- readSTRef ref
-  let (App app) = app
+  let (RunningApp app) = app
   let oldTree = unsafePartial (fromJust env.tree)
   let root = unsafePartial (fromJust env.root)
   let newModel = app.update msg env.model
   let cmd = app.next msg newModel
   let newAttrs = app { model = newModel }
-  let newApp = App newAttrs
+  let newApp = RunningApp newAttrs
   newTree <- render (handler ref newApp) (app.view newModel)
   newRoot <- patch newTree oldTree env.root
   let newRuntime =
@@ -139,12 +146,18 @@ runCmd :: ∀ c e model msg.
     -> Eff e (Runtime model)
 runCmd = runCmdImpl
 
-runApp_ :: ∀ c e h model msg.
-  App c model msg
+runApp_ :: ∀ c e h model msg flags.
+  App c model msg flags
+    -> flags
     -> Eff ( st :: ST h, dom :: DOM | e) Node
-runApp_ (App app) = do
-  ref <- newSTRef { tree: Nothing, root: Nothing, model: app.model }
-  tree <- render (handler ref (App app)) (app.view app.model)
+runApp_ (App app) flags = do
+  let runningApp = { model: app.init flags
+                   , view: app.view
+                   , next: app.next
+                   , update: app.update
+                   }
+  ref <- newSTRef { tree: Nothing, root: Nothing, model: runningApp.model }
+  tree <- render (handler ref (RunningApp runningApp)) (runningApp.view runningApp.model)
   let rootNode = (N.createRootNode tree)
-  _ <- writeSTRef ref { tree: Just tree, root: Just rootNode, model: app.model }
+  _ <- writeSTRef ref { tree: Just tree, root: Just rootNode, model: runningApp.model }
   pure rootNode
