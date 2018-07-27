@@ -47,8 +47,7 @@ data App c model msg flags = App
   }
 
 data RunningApp c model msg = RunningApp
-  { model :: model
-  , update :: msg -> model -> model
+  { update :: msg -> model -> model
   , next :: msg -> model -> Cmd c msg
   , view :: model -> Html msg
   }
@@ -117,23 +116,21 @@ handler :: ∀ msg model eff c h.
     -> RunningApp c model msg
     -> msg
     -> Eff ( dom :: DOM, st :: ST h | eff ) (Runtime model)
-handler ref app msg = do
+handler ref runningApp msg = do
   env <- readSTRef ref
-  let (RunningApp app) = app
+  let (RunningApp app) = runningApp
   let oldTree = unsafePartial (fromJust env.tree)
   let root = unsafePartial (fromJust env.root)
   let newModel = app.update msg env.model
   let cmd = app.next msg newModel
-  let newAttrs = app { model = newModel }
-  let newApp = RunningApp newAttrs
-  newTree <- render (handler ref newApp) (app.view newModel)
+  newTree <- render (handler ref runningApp) (app.view newModel)
   newRoot <- patch newTree oldTree env.root
   let newRuntime =
         { root: Just newRoot
         , tree: Just newTree
-        , model: newAttrs.model
+        , model: newModel
         }
-  _ <- runCmd (handler ref newApp) cmd
+  _ <- runCmd (handler ref runningApp) cmd
   writeSTRef ref newRuntime
 
 foreign import runCmdImpl :: ∀ c e model msg.
@@ -152,13 +149,13 @@ runApp_ :: ∀ c e h model msg flags.
     -> flags
     -> Eff ( st :: ST h, dom :: DOM | e) Node
 runApp_ (App app) flags = do
-  let runningApp = { model: app.init flags
-                   , view: app.view
+  let runningApp = { view: app.view
                    , next: app.next
                    , update: app.update
                    }
-  ref <- newSTRef { tree: Nothing, root: Nothing, model: runningApp.model }
-  tree <- render (handler ref (RunningApp runningApp)) (runningApp.view runningApp.model)
+  let initialModel = app.init flags
+  ref <- newSTRef { tree: Nothing, root: Nothing, model: initialModel }
+  tree <- render (handler ref (RunningApp runningApp)) (runningApp.view initialModel)
   let rootNode = (N.createRootNode tree)
-  _ <- writeSTRef ref { tree: Just tree, root: Just rootNode, model: runningApp.model }
+  _ <- writeSTRef ref { tree: Just tree, root: Just rootNode, model: initialModel }
   pure rootNode
