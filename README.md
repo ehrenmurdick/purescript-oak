@@ -28,6 +28,7 @@ import Oak.Html ( Html, div, text, button )
 import Oak.Html.Events
 import Oak.Document
 import Oak.Cmd
+import Oak.Cmd.Http (get)
 
 
 type Model =
@@ -59,12 +60,12 @@ update Dec model =
   model { number = model.number - 1 }
 
 
-init :: Model
-init =
+init :: Unit -> Model
+init _ =
   { number: 0
   }
 
-app :: App () Model Msg
+app :: App () Model Msg Unit
 app = createApp
   { init: init
   , view: view
@@ -74,7 +75,7 @@ app = createApp
 
 main :: Eff (exception :: EXCEPTION, dom :: DOM) Unit
 main = do
-  rootNode <- runApp app
+  rootNode <- runApp app unit
   container <- getElementById "app"
   appendChildNode container rootNode
 ```
