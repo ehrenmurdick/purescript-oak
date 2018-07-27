@@ -59,7 +59,8 @@ data RunningApp c model msg = RunningApp
 -- |
 -- | `init`:
 -- |
--- | Should the initial model state.
+-- | A function from you flags type to the inital model state.
+-- | Flags type can be `Unit` if you don't need this for anything.
 -- |
 -- |
 -- | `view`:
