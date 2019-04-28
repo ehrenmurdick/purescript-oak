@@ -1,6 +1,6 @@
 module Oak.VirtualDom.Native where
 
-import Control.Monad.Eff (Eff, kind Effect)
+import Effect (Effect)
 import Control.Monad.ST (ST)
 import Data.Function.Uncurried
   ( Fn1
@@ -10,8 +10,7 @@ import Data.Function.Uncurried
   )
 
 import Oak.Document
-  ( DOM
-  , Node
+  ( Node
   )
 
 foreign import data Tree :: Type
@@ -20,13 +19,13 @@ foreign import data NativeAttrs :: Type
 foreign import emptyAttrs :: NativeAttrs
 
 foreign import patchImpl :: ∀ e.
-  Fn3 Tree Tree Node (Eff ( dom :: DOM | e ) Node)
+  Fn3 Tree Tree Node (Effect Node)
 
 patch :: ∀ e.
   Tree
     -> Tree
     -> Node
-    -> Eff ( dom :: DOM | e ) Node
+    -> Effect Node
 patch = runFn3 patchImpl
 
 foreign import createRootNodeImpl ::
@@ -88,23 +87,23 @@ concatEventTargetValueHandlerFun :: ∀ eff event.
 concatEventTargetValueHandlerFun = runFn3 concatEventTargetValueHandlerFunImpl
 
 foreign import textImpl :: ∀ e.
-  Fn1 String (Eff e Tree)
+  Fn1 String (Effect Tree)
 
 text :: ∀ e.
   String
-    -> Eff e Tree
+    -> Effect Tree
 text = runFn1 textImpl
 
 foreign import renderImpl :: ∀ h e.
   Fn3
     String
     NativeAttrs
-    ( Eff ( st :: ST h | e ) (Array Tree) )
-    ( Eff ( st :: ST h | e ) Tree )
+    ( Effect (Array Tree) )
+    ( Effect Tree )
 
 render :: ∀ h e.
   String
     -> NativeAttrs
-    -> Eff ( st :: ST h | e ) (Array Tree)
-    -> Eff ( st :: ST h | e ) Tree
+    -> Effect (Array Tree)
+    -> Effect Tree
 render = runFn3 renderImpl

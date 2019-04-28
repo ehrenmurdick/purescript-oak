@@ -13,14 +13,13 @@
     "bower_components",
     "output"
   ],
-  "dependencies": {
-    "purescript-prelude": "^3.1.1",
-    "purescript-console": "^3.0.0",
-    "purescript-foreign": "^4.0.1",
-    "purescript-foreign-generic": "^5.0.1",
-    "virtual-dom": "^2.1.1"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "purescript-psci-support": "^3.0.0"
+    "purescript-psci-support": "^4.0.0",
+    "purescript-prelude": "^4.0.0",
+    "purescript-console": "^4.0.0",
+    "virtual-dom": "^2.1.1",
+    "purescript-functions": "^4.0.0",
+    "purescript-st": "^4.0.0"
   }
 }

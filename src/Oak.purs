@@ -9,18 +9,17 @@ import Prelude
   , pure
   )
 import Oak.Cmd (Cmd)
-import Control.Monad.Eff
-  ( Eff
-  , kind Effect
-  )
+import Effect (Effect)
 import Control.Monad.ST
   ( ST
-  , STRef
-  , newSTRef
-  , readSTRef
-  , runST
-  , writeSTRef
+  , run
   )
+import Control.Monad.ST.Ref
+  ( STRef
+  , new
+  , read
+  , write
+  ) as STRef
 import Partial.Unsafe (unsafePartial)
 import Data.Maybe
   ( Maybe(..)
@@ -35,7 +34,6 @@ import Oak.VirtualDom
 import Oak.VirtualDom.Native as N
 import Oak.Document
   ( Node
-  , DOM
   )
 
 
@@ -99,9 +97,9 @@ createApp opts = App
 -- | be used to embed the application. See the `main` function
 -- | of the example app in the readme.
 runApp :: ∀ c e model msg flags.
-  App c model msg flags -> flags -> Eff (dom :: DOM | e) Node
+  App c model msg flags -> flags -> Effect Node
 runApp app flags = do
-  runST (runApp_ app flags)
+  run (runApp_ app flags)
 
 
 
@@ -112,12 +110,12 @@ type Runtime m =
   }
 
 handler :: ∀ msg model eff c h.
-  STRef h (Runtime model)
+  STRef.STRef h (Runtime model)
     -> RunningApp c model msg
     -> msg
-    -> Eff ( dom :: DOM, st :: ST h | eff ) (Runtime model)
+    -> Effect (Runtime model)
 handler ref runningApp msg = do
-  env <- readSTRef ref
+  env <- STRef.read ref
   let (RunningApp app) = runningApp
   let oldTree = unsafePartial (fromJust env.tree)
   let root = unsafePartial (fromJust env.root)
@@ -131,31 +129,31 @@ handler ref runningApp msg = do
         , model: newModel
         }
   _ <- runCmd (handler ref runningApp) cmd
-  writeSTRef ref newRuntime
+  STRef.write newRuntime ref
 
 foreign import runCmdImpl :: ∀ c e model msg.
-  (msg -> Eff e (Runtime model))
+  (msg -> Effect (Runtime model))
     -> Cmd c msg
-    -> Eff e (Runtime model)
+    -> Effect (Runtime model)
 
 runCmd :: ∀ c e model msg.
-  (msg -> Eff e (Runtime model))
+  (msg -> Effect (Runtime model))
     -> Cmd c msg
-    -> Eff e (Runtime model)
+    -> Effect (Runtime model)
 runCmd = runCmdImpl
 
 runApp_ :: ∀ c e h model msg flags.
   App c model msg flags
     -> flags
-    -> Eff ( st :: ST h, dom :: DOM | e) Node
+    -> Effect Node
 runApp_ (App app) flags = do
   let runningApp = { view: app.view
                    , next: app.next
                    , update: app.update
                    }
   let initialModel = app.init flags
-  ref <- newSTRef { tree: Nothing, root: Nothing, model: initialModel }
+  ref <- STRef.new { tree: Nothing, root: Nothing, model: initialModel }
   tree <- render (handler ref (RunningApp runningApp)) (runningApp.view initialModel)
   let rootNode = (N.createRootNode tree)
-  _ <- writeSTRef ref { tree: Just tree, root: Just rootNode, model: initialModel }
+  _ <- STRef.write ref { tree: Just tree, root: Just rootNode, model: initialModel }
   pure rootNode

@@ -2,7 +2,7 @@ module Oak.Html.Present where
 
 import Prelude
   ( show
-  , id
+  , identity
   )
 
 
@@ -16,7 +16,7 @@ class Present a where
 
 
 instance presentString :: Present String where
-  present = id
+  present = identity
 
 instance presentInt :: Present Int where
   present = show

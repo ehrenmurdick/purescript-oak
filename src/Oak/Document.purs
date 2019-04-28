@@ -1,6 +1,5 @@
 module Oak.Document
   ( Node
-  , DOM
   , Element
   , appendChildNode
   , getElementById
@@ -8,39 +7,34 @@ module Oak.Document
 
 
 import Prelude (Unit)
-import Control.Monad.Eff
-  ( Eff
-  , kind Effect
-  )
+import Effect (Effect)
 import Data.Function.Uncurried
   ( Fn1
   , runFn1
   )
-import Control.Monad.Eff.Exception (EXCEPTION)
 
 foreign import data Element :: Type
-foreign import data DOM :: Effect
 foreign import data Node :: Type
 
 foreign import getElementByIdImpl :: ∀ e.
   Fn1
   String
-  (Eff (exception :: EXCEPTION, dom :: DOM | e) Element)
+  (Effect Element)
 
 foreign import appendChildNodeImpl :: ∀ e.
   Element
     -> Node
-    -> Eff (dom :: DOM | e) Unit
+    -> Effect Unit
 
 appendChildNode :: ∀ e.
   Element
     -> Node
-    -> Eff (dom :: DOM | e) Unit
+    -> Effect Unit
 appendChildNode element rootNode =
   appendChildNodeImpl element rootNode
 
 getElementById :: ∀ e.
   String
-    -> Eff (exception :: EXCEPTION, dom :: DOM | e) Element
+    -> Effect Element
 getElementById = runFn1 getElementByIdImpl
 

@@ -5,7 +5,7 @@ import Prelude
   , ($)
   , (<>)
   )
-import Control.Monad.Eff (Eff)
+import Effect (Effect)
 import Control.Monad.ST (ST)
 import Data.Maybe (Maybe, fromJust)
 import Data.Traversable (foldr, sequence)
@@ -20,13 +20,12 @@ import Oak.Css (StyleAttribute(..))
 import Oak.VirtualDom.Native as N
 import Oak.Document
   ( Node
-  , DOM
   )
 
 render :: ∀ e h msg r.
-  (msg -> Eff ( st :: ST h | e ) r)
+  (msg -> Effect r)
     -> Html msg
-    -> Eff ( st :: ST h | e ) N.Tree
+    -> Effect N.Tree
 render h (Tag name attrs children) =
   N.render name (combineAttrs attrs h) (sequence $ map (render h) children)
 render h (Text str) = N.text str
@@ -69,7 +68,7 @@ patch :: ∀ e.
   N.Tree
     -> N.Tree
     -> Maybe Node
-    -> Eff ( dom :: DOM | e ) Node
+    -> Effect Node
 patch oldTree newTree maybeRoot =
   let root = unsafePartial (fromJust maybeRoot)
   in N.patch oldTree newTree root
