@@ -1,7 +1,6 @@
 module Oak.VirtualDom.Native where
 
 import Effect (Effect)
-import Control.Monad.ST (ST)
 import Data.Function.Uncurried
   ( Fn1
   , Fn3

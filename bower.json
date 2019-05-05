@@ -20,6 +20,7 @@
     "purescript-console": "^4.0.0",
     "virtual-dom": "^2.1.1",
     "purescript-functions": "^4.0.0",
-    "purescript-st": "^4.0.0"
+    "purescript-st": "^4.0.0",
+    "purescript-refs": "^4.1.0"
   }
 }

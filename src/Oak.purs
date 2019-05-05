@@ -10,16 +10,12 @@ import Prelude
   )
 import Oak.Cmd (Cmd)
 import Effect (Effect)
-import Control.Monad.ST
-  ( ST
-  , run
-  )
-import Control.Monad.ST.Ref
-  ( STRef
+import Effect.Ref
+  ( Ref
   , new
   , read
   , write
-  ) as STRef
+  ) as Ref
 import Partial.Unsafe (unsafePartial)
 import Data.Maybe
   ( Maybe(..)
@@ -99,7 +95,7 @@ createApp opts = App
 runApp :: ∀ c e model msg flags.
   App c model msg flags -> flags -> Effect Node
 runApp app flags = do
-  run (runApp_ app flags)
+  runApp_ app flags
 
 
 
@@ -110,12 +106,12 @@ type Runtime m =
   }
 
 handler :: ∀ msg model eff c h.
-  STRef.STRef h (Runtime model)
+  Ref.Ref (Runtime model)
     -> RunningApp c model msg
     -> msg
     -> Effect (Runtime model)
 handler ref runningApp msg = do
-  env <- STRef.read ref
+  env <- Ref.read ref
   let (RunningApp app) = runningApp
   let oldTree = unsafePartial (fromJust env.tree)
   let root = unsafePartial (fromJust env.root)
@@ -129,7 +125,8 @@ handler ref runningApp msg = do
         , model: newModel
         }
   _ <- runCmd (handler ref runningApp) cmd
-  STRef.write newRuntime ref
+  _ <- Ref.write newRuntime ref
+  pure newRuntime
 
 foreign import runCmdImpl :: ∀ c e model msg.
   (msg -> Effect (Runtime model))
@@ -152,8 +149,8 @@ runApp_ (App app) flags = do
                    , update: app.update
                    }
   let initialModel = app.init flags
-  ref <- STRef.new { tree: Nothing, root: Nothing, model: initialModel }
+  ref <- Ref.new { tree: Nothing, root: Nothing, model: initialModel }
   tree <- render (handler ref (RunningApp runningApp)) (runningApp.view initialModel)
   let rootNode = (N.createRootNode tree)
-  _ <- STRef.write ref { tree: Just tree, root: Just rootNode, model: initialModel }
+  _ <- Ref.write { tree: Just tree, root: Just rootNode, model: initialModel } ref
   pure rootNode
