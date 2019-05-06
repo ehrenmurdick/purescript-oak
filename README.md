@@ -15,20 +15,18 @@ Documentation is published on [pursuit](https://pursuit.purescript.org/packages/
 
 A breif example Oak app:
 
-```purescript
+```
 module Main (main) where
 
 import Prelude
 
-import Control.Monad.Eff
-import Control.Monad.Eff.Exception
+import Effect (Effect)
 
 import Oak
 import Oak.Html ( Html, div, text, button )
+import Oak.Cmd
 import Oak.Html.Events
 import Oak.Document
-import Oak.Cmd
-import Oak.Cmd.Http (get)
 
 
 type Model =
@@ -73,7 +71,7 @@ app = createApp
   , next: next
   }
 
-main :: Eff (exception :: EXCEPTION, dom :: DOM) Unit
+main :: Effect Unit
 main = do
   rootNode <- runApp app unit
   container <- getElementById "app"
