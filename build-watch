@@ -4,6 +4,6 @@ clear
 echo 'ready'
 
 while true
-  inotifywait -e modify src/* > /dev/null 2>&1
+  inotifywait -e modify src/**/* > /dev/null 2>&1
   yarn run pulp build
 end

@@ -16,24 +16,24 @@ import Data.Function.Uncurried
 foreign import data Element :: Type
 foreign import data Node :: Type
 
-foreign import getElementByIdImpl :: ∀ e.
+foreign import getElementByIdImpl ::
   Fn1
   String
   (Effect Element)
 
-foreign import appendChildNodeImpl :: ∀ e.
+foreign import appendChildNodeImpl ::
   Element
     -> Node
     -> Effect Unit
 
-appendChildNode :: ∀ e.
+appendChildNode ::
   Element
     -> Node
     -> Effect Unit
 appendChildNode element rootNode =
   appendChildNodeImpl element rootNode
 
-getElementById :: ∀ e.
+getElementById ::
   String
     -> Effect Element
 getElementById = runFn1 getElementByIdImpl

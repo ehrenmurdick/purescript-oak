@@ -17,10 +17,10 @@ foreign import data NativeAttrs :: Type
 
 foreign import emptyAttrs :: NativeAttrs
 
-foreign import patchImpl :: ∀ e.
+foreign import patchImpl ::
   Fn3 Tree Tree Node (Effect Node)
 
-patch :: ∀ e.
+patch ::
   Tree
     -> Tree
     -> Node
@@ -85,22 +85,22 @@ concatEventTargetValueHandlerFun :: ∀ eff event.
     -> NativeAttrs
 concatEventTargetValueHandlerFun = runFn3 concatEventTargetValueHandlerFunImpl
 
-foreign import textImpl :: ∀ e.
+foreign import textImpl ::
   Fn1 String (Effect Tree)
 
-text :: ∀ e.
+text ::
   String
     -> Effect Tree
 text = runFn1 textImpl
 
-foreign import renderImpl :: ∀ h e.
+foreign import renderImpl ::
   Fn3
     String
     NativeAttrs
     ( Effect (Array Tree) )
     ( Effect Tree )
 
-render :: ∀ h e.
+render ::
   String
     -> NativeAttrs
     -> Effect (Array Tree)

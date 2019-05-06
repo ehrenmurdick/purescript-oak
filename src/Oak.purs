@@ -92,7 +92,7 @@ createApp opts = App
 -- | containing the root node of the app, which can
 -- | be used to embed the application. See the `main` function
 -- | of the example app in the readme.
-runApp :: ∀ c e model msg flags.
+runApp :: ∀ c model msg flags.
   App c model msg flags -> flags -> Effect Node
 runApp app flags = do
   runApp_ app flags
@@ -105,7 +105,7 @@ type Runtime m =
   , model :: m
   }
 
-handler :: ∀ msg model eff c h.
+handler :: ∀ msg model c.
   Ref.Ref (Runtime model)
     -> RunningApp c model msg
     -> msg
@@ -128,18 +128,18 @@ handler ref runningApp msg = do
   _ <- Ref.write newRuntime ref
   pure newRuntime
 
-foreign import runCmdImpl :: ∀ c e model msg.
+foreign import runCmdImpl :: ∀ c model msg.
   (msg -> Effect (Runtime model))
     -> Cmd c msg
     -> Effect (Runtime model)
 
-runCmd :: ∀ c e model msg.
+runCmd :: ∀ c model msg.
   (msg -> Effect (Runtime model))
     -> Cmd c msg
     -> Effect (Runtime model)
 runCmd = runCmdImpl
 
-runApp_ :: ∀ c e h model msg flags.
+runApp_ :: ∀ c model msg flags.
   App c model msg flags
     -> flags
     -> Effect Node

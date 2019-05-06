@@ -6,7 +6,6 @@ import Prelude
   , (<>)
   )
 import Effect (Effect)
-import Control.Monad.ST (ST)
 import Data.Maybe (Maybe, fromJust)
 import Data.Traversable (foldr, sequence)
 import Partial.Unsafe (unsafePartial)
@@ -22,7 +21,7 @@ import Oak.Document
   ( Node
   )
 
-render :: ∀ e h msg r.
+render :: ∀ msg r.
   (msg -> Effect r)
     -> Html msg
     -> Effect N.Tree
@@ -64,7 +63,7 @@ combineAttrs :: ∀ msg eff.
 combineAttrs attrs handler =
   foldr (concatAttr handler) N.emptyAttrs attrs
 
-patch :: ∀ e.
+patch ::
   N.Tree
     -> N.Tree
     -> Maybe Node
