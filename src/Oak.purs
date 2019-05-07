@@ -33,16 +33,16 @@ import Oak.Document
   )
 
 
-data App c model msg flags = App
+data App model msg flags = App
   { init :: flags -> model
   , update :: msg -> model -> model
-  , next :: msg -> model -> Cmd c msg
+  , next :: msg -> model -> Cmd msg
   , view :: model -> Html msg
   }
 
-data RunningApp c model msg = RunningApp
+data RunningApp model msg = RunningApp
   { update :: msg -> model -> model
-  , next :: msg -> model -> Cmd c msg
+  , next :: msg -> model -> Cmd msg
   , view :: model -> Html msg
   }
 
@@ -74,12 +74,12 @@ data RunningApp c model msg = RunningApp
 -- | Takes an incoming message, and the previous model state,
 -- | and returns the new model state.
 
-createApp :: ∀ msg model c flags.
+createApp :: ∀ msg model flags.
   { init :: flags -> model
   , update :: msg -> model -> model
-  , next :: msg -> model -> Cmd c msg
+  , next :: msg -> model -> Cmd msg
   , view :: model -> Html msg
-  } -> App c model msg flags
+  } -> App model msg flags
 createApp opts = App
   { init: opts.init
   , view: opts.view
@@ -92,8 +92,8 @@ createApp opts = App
 -- | containing the root node of the app, which can
 -- | be used to embed the application. See the `main` function
 -- | of the example app in the readme.
-runApp :: ∀ c model msg flags.
-  App c model msg flags -> flags -> Effect Node
+runApp :: ∀ model msg flags.
+  App model msg flags -> flags -> Effect Node
 runApp app flags = do
   runApp_ app flags
 
@@ -105,9 +105,9 @@ type Runtime m =
   , model :: m
   }
 
-handler :: ∀ msg model c.
+handler :: ∀ msg model.
   Ref.Ref (Runtime model)
-    -> RunningApp c model msg
+    -> RunningApp model msg
     -> msg
     -> Effect (Runtime model)
 handler ref runningApp msg = do
@@ -128,19 +128,19 @@ handler ref runningApp msg = do
   _ <- Ref.write newRuntime ref
   pure newRuntime
 
-foreign import runCmdImpl :: ∀ c model msg.
+foreign import runCmdImpl :: ∀ model msg.
   (msg -> Effect (Runtime model))
-    -> Cmd c msg
+    -> Cmd msg
     -> Effect (Runtime model)
 
-runCmd :: ∀ c model msg.
+runCmd :: ∀ model msg.
   (msg -> Effect (Runtime model))
-    -> Cmd c msg
+    -> Cmd msg
     -> Effect (Runtime model)
 runCmd = runCmdImpl
 
-runApp_ :: ∀ c model msg flags.
-  App c model msg flags
+runApp_ :: ∀ model msg flags.
+  App model msg flags
     -> flags
     -> Effect Node
 runApp_ (App app) flags = do

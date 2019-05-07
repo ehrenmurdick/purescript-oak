@@ -9,3 +9,5 @@
 /.psa*
 /dist/*
 yarn-error.log
+src/Main.purs
+index.html

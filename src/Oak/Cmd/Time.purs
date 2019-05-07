@@ -1,6 +1,5 @@
 module Oak.Cmd.Time
   ( Time
-  , TIME
   , milliseconds
   , seconds
   , delay
@@ -20,10 +19,8 @@ import Oak.Cmd
 
 data Time = Time Int
 
-foreign import data TIME :: Command
-
-foreign import delayImpl :: ∀ c m.
-  Fn2 Int m (Cmd (time :: TIME | c) m)
+foreign import delayImpl :: ∀ m.
+  Fn2 Int m (Cmd m)
 
 
 milliseconds :: Int -> Time
@@ -38,8 +35,8 @@ timeToMilliseconds :: Time -> Int
 timeToMilliseconds (Time x) = x
 
 
-delay :: ∀ c m.
+delay :: ∀ m.
   Time
     -> m
-    -> Cmd (time :: TIME | c) m
+    -> Cmd m
 delay amt msg = (runFn2 delayImpl) (timeToMilliseconds amt) msg

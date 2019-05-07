@@ -1,40 +1,11 @@
 module Oak.Cmd
-  ( kind Command
-  , Cmd
+  ( Cmd
   , none
-  , batch
   ) where
 
-import Prelude (class Semigroup)
+foreign import data Cmd :: Type -> Type
 
-import Data.Function.Uncurried
-  ( Fn2
-  , runFn2
-  )
-import Data.Monoid (class Monoid)
-import Data.Traversable (class Foldable, fold)
+foreign import noneImpl :: ∀ a. Cmd a
 
-foreign import kind Command
-
-foreign import data Cmd :: # Command -> Type -> Type
-
-foreign import noneImpl :: ∀ c a. Cmd c a
-
-
-none :: ∀ c a. Cmd c a
+none :: ∀ a. Cmd a
 none = noneImpl
-
-foreign import appendImpl :: ∀ c1 c2 c3 msg.
-  Fn2 (Cmd c1 msg) (Cmd c2 msg) (Cmd c3 msg)
-
-
-instance semigroupCmd :: Semigroup (Cmd c a) where
-  append = runFn2 appendImpl
-
-
-instance monoidCmd :: Monoid (Cmd c a) where
-  mempty = none
-
-
-batch :: ∀ f c a. Foldable f => f (Cmd c a) -> Cmd c a
-batch = fold

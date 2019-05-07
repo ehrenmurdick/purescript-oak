@@ -1,6 +1,5 @@
 module Oak.Cmd.Random
   ( Random
-  , RANDOM
   , generate
   ) where
 
@@ -9,18 +8,16 @@ import Data.Function.Uncurried
  , runFn1
  )
 
-import Oak.Cmd (Cmd, kind Command)
+import Oak.Cmd (Cmd)
 
 data Random = Random Number
 
-foreign import data RANDOM :: Command
-
-foreign import mathRandom :: ∀ c m.
+foreign import mathRandom :: ∀ m.
   Fn1
     (Number -> m)
-    (Cmd (random :: RANDOM | c) m)
+    (Cmd m)
 
-generate :: ∀ c m.
+generate :: ∀ m.
   (Number -> m)
-    -> Cmd (random :: RANDOM | c) m
+    -> Cmd m
 generate msgCtor = (runFn1 mathRandom) msgCtor
