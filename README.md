@@ -48,7 +48,7 @@ view model =
     ]
 
 
-next :: Msg -> Model -> Cmd () Msg
+next :: Msg -> Model -> Cmd Msg
 next _ _ = none
 
 update :: Msg -> Model -> Model
@@ -63,7 +63,7 @@ init _ =
   { number: 0
   }
 
-app :: App () Model Msg Unit
+app :: App Model Msg Unit
 app = createApp
   { init: init
   , view: view
