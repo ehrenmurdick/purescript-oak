@@ -1,11 +1,23 @@
 module Oak.Cmd
-  ( Cmd
+  ( Cmd(..)
   , none
+  , performEffectThen
+  , performEffect
   ) where
 
-foreign import data Cmd :: Type -> Type
+import Effect (Effect)
+import Prelude (map, const, Unit)
 
-foreign import noneImpl :: ∀ a. Cmd a
+data Cmd msg
+  = Cmd (Effect msg)
+  | Stop (Effect Unit)
+  | None
 
-none :: ∀ a. Cmd a
-none = noneImpl
+none :: ∀ msg. Cmd msg
+none = None
+
+performEffectThen :: ∀ a msg. msg -> Effect a -> Cmd msg
+performEffectThen m e = Cmd (map (const m) e)
+
+performEffect :: ∀ a msg. Effect Unit -> Cmd msg
+performEffect e = Stop e

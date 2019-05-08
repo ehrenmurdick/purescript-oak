@@ -1,7 +1,5 @@
-exports.runCmdImpl = function(handler) {
-  return function(command) {
+exports.runCmdImpl = function(commandHandlerChain) {
     return function() {
-      command(handler);
-    };
+      commandHandlerChain();
   };
 };

@@ -11,3 +11,4 @@
 yarn-error.log
 src/Main.purs
 index.html
+app.js
