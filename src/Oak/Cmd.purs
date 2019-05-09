@@ -5,15 +5,19 @@ module Oak.Cmd
   , runEff
   ) where
 
+import Prelude (map, const, Unit)
+
 import Effect (Effect)
 import Effect.Class (liftEffect)
 import Effect.Aff (Aff)
-import Prelude (map, const, Unit)
+import Effect.Exception
+import Data.Either
 
 data Cmd msg
   = EffCmdThen (Effect msg)
   | EffCmdStop (Effect Unit)
   | AffCmdStop (Aff Unit)
+  | AffCmdThen (Either Error msg -> msg) (Aff msg)
   | None
 
 none :: ∀ msg. Cmd msg

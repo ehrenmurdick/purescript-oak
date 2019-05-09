@@ -19,7 +19,9 @@
     "purescript-functions": "^4.0.0",
     "purescript-st": "^4.0.0",
     "purescript-refs": "^4.1.0",
-    "purescript-aff": "^5.1.1"
+    "purescript-aff": "^5.1.1",
+    "purescript-either": "^4.1.1",
+    "purescript-exceptions": "^4.0.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^4.0.0",

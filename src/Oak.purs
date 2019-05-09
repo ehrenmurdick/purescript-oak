@@ -7,6 +7,7 @@ module Oak
 import Prelude
   ( ($)
   , (>>=)
+  , (<<<)
   , bind
   , discard
   , pure
@@ -16,7 +17,7 @@ import Prelude
 import Data.Monoid (mempty)
 import Oak.Cmd (Cmd(..))
 import Effect (Effect)
-import Effect.Aff (launchAff_)
+import Effect.Aff (launchAff_, runAff_)
 import Effect.Ref
   ( Ref
   , new
@@ -144,6 +145,7 @@ runCmd :: ∀ model msg.
     -> Cmd msg
     -> Effect Unit
 runCmd _ None             = mempty
+runCmd h (AffCmdThen cbk aff) = runAff_ (h <<< cbk) aff
 runCmd h (EffCmdThen eff) = runCmdImpl $ eff >>= h
 runCmd _ (EffCmdStop eff) = do
   eff
