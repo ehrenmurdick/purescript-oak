@@ -8,11 +8,15 @@ import Prelude
   ( ($)
   , (>>=)
   , bind
-  , pure
   , discard
+  , pure
+  , Unit
+  , unit
   )
+import Data.Monoid (mempty)
 import Oak.Cmd (Cmd(..))
 import Effect (Effect)
+import Effect.Aff (launchAff_)
 import Effect.Ref
   ( Ref
   , new
@@ -112,7 +116,7 @@ handler :: ∀ msg model.
   Ref.Ref (Runtime model)
     -> RunningApp model msg
     -> msg
-    -> Effect (Runtime model)
+    -> Effect Unit
 handler ref runningApp msg = do
   env <- Ref.read ref
   let (RunningApp app) = runningApp
@@ -127,24 +131,26 @@ handler ref runningApp msg = do
         , tree: Just newTree
         , model: newModel
         }
-  _ <- runCmd newRuntime (handler ref runningApp) cmd
+  _ <- runCmd (handler ref runningApp) cmd
   _ <- Ref.write newRuntime ref
-  pure newRuntime
+  mempty
 
 foreign import runCmdImpl :: ∀ model.
-  Effect (Runtime model)
-    -> Effect (Runtime model)
+  Effect Unit
+    -> Effect Unit
 
 runCmd :: ∀ model msg.
-  (Runtime model)
-    -> (msg -> Effect (Runtime model))
+  (msg -> Effect Unit)
     -> Cmd msg
-    -> Effect (Runtime model)
-runCmd rt  _ None       = pure rt
-runCmd _   h (Cmd eff)  = runCmdImpl $ eff >>= h
-runCmd rt  _ (Stop eff) = do
+    -> Effect Unit
+runCmd _ None             = mempty
+runCmd h (EffCmdThen eff) = runCmdImpl $ eff >>= h
+runCmd _ (EffCmdStop eff) = do
   eff
-  pure rt
+  mempty
+runCmd _ (AffCmdStop aff) = do
+  launchAff_ aff
+  mempty
 
 runApp_ :: ∀ model msg flags.
   App model msg flags
