@@ -15,7 +15,6 @@ import Prelude
   , unit
   )
 import Data.Monoid (mempty)
-import Oak.Cmd (Cmd(..))
 import Effect (Effect)
 import Effect.Aff (launchAff_, runAff_)
 import Effect.Ref
@@ -44,13 +43,13 @@ import Oak.Document
 data App model msg flags = App
   { init :: flags -> model
   , update :: msg -> model -> model
-  , next :: msg -> model -> Cmd msg
+  , next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit
   , view :: model -> Html msg
   }
 
 data RunningApp model msg = RunningApp
   { update :: msg -> model -> model
-  , next :: msg -> model -> Cmd msg
+  , next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit
   , view :: model -> Html msg
   }
 
@@ -85,7 +84,7 @@ data RunningApp model msg = RunningApp
 createApp :: ∀ msg model flags.
   { init :: flags -> model
   , update :: msg -> model -> model
-  , next :: msg -> model -> Cmd msg
+  , next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit
   , view :: model -> Html msg
   } -> App model msg flags
 createApp opts = App
@@ -124,7 +123,6 @@ handler ref runningApp msg = do
   let oldTree = unsafePartial (fromJust env.tree)
   let root = unsafePartial (fromJust env.root)
   let newModel = app.update msg env.model
-  let cmd = app.next msg newModel
   newTree <- render (handler ref runningApp) (app.view newModel)
   newRoot <- patch newTree oldTree env.root
   let newRuntime =
@@ -132,26 +130,8 @@ handler ref runningApp msg = do
         , tree: Just newTree
         , model: newModel
         }
-  _ <- runCmd (handler ref runningApp) cmd
-  _ <- Ref.write newRuntime ref
-  mempty
-
-foreign import runCmdImpl :: ∀ model.
-  Effect Unit
-    -> Effect Unit
-
-runCmd :: ∀ model msg.
-  (msg -> Effect Unit)
-    -> Cmd msg
-    -> Effect Unit
-runCmd _ None             = mempty
-runCmd h (AffCmdThen cbk aff) = runAff_ (h <<< cbk) aff
-runCmd h (EffCmdThen eff) = runCmdImpl $ eff >>= h
-runCmd _ (EffCmdStop eff) = do
-  eff
-  mempty
-runCmd _ (AffCmdStop aff) = do
-  launchAff_ aff
+  Ref.write newRuntime ref
+  app.next msg newModel (handler ref runningApp)
   mempty
 
 runApp_ :: ∀ model msg flags.
