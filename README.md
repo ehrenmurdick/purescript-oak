@@ -19,14 +19,36 @@ A breif example Oak app:
 module Main (main) where
 
 import Prelude
+  ( Unit
+  , (+)
+  , (-)
+  , bind
+  , unit
+  , discard
+  )
+
+import Data.Monoid (mempty)
+import Effect.Random (randomInt)
 
 import Effect (Effect)
-
+import Effect.Console (log)
 import Oak
-import Oak.Html ( Html, div, text, button )
-import Oak.Cmd
-import Oak.Html.Events
+  ( App
+  , createApp
+  , runApp
+  )
+import Oak.Html
+  ( Html
+  , div
+  , text
+  , button
+  , br
+  )
+import Oak.Html.Events ( onClick )
 import Oak.Document
+  ( appendChildNode
+  , getElementById
+  )
 
 
 type Model =
@@ -37,6 +59,8 @@ type Model =
 data Msg
   = Inc
   | Dec
+  | GetRand
+  | Set Int
 
 
 view :: Model -> Html Msg
@@ -45,18 +69,28 @@ view model =
     [ button [ onClick Inc ] [ text "+" ]
     , div [] [ text model.number ]
     , button [ onClick Dec ] [ text "-" ]
+    , br [] []
+    , button [ onClick GetRand ] [ text "random" ]
     ]
 
-
-next :: Msg -> Model -> Cmd Msg
-next _ _ = none
+next :: Msg -> Model -> (Msg -> Effect Unit) -> Effect Unit
+next GetRand model h = do
+  log "generating random int"
+  n <- randomInt 0 100
+  h (Set n)
+next _ _ _       = mempty
 
 update :: Msg -> Model -> Model
-update Inc model =
-  model { number = model.number + 1 }
-update Dec model =
-  model { number = model.number - 1 }
-
+update msg model =
+  case msg of
+    Inc ->
+      model { number = model.number + 1 }
+    Dec ->
+      model { number = model.number - 1 }
+    (Set n) ->
+      model { number = n }
+    GetRand ->
+      model
 
 init :: Unit -> Model
 init _ =
