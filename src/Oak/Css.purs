@@ -1,3 +1,16 @@
+
+-- | The Oak.Css module can be used to add style attributes to html various
+-- | elements.
+-- |
+-- | ```purescript
+-- | import Oak.Html.Attribute
+-- | import Oak.Css
+-- |
+-- | view _ =
+-- |   div [ style [ backgroundColor "red" ] ]
+-- |    [ text "hi" ]
+-- | ```
+
 module Oak.Css where
 
 
