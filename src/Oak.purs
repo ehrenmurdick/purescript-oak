@@ -5,18 +5,13 @@ module Oak
   ) where
 
 import Prelude
-  ( ($)
-  , (>>=)
-  , (<<<)
-  , bind
+  ( bind
   , discard
   , pure
   , Unit
-  , unit
   )
 import Data.Monoid (mempty)
 import Effect (Effect)
-import Effect.Aff (launchAff_, runAff_)
 import Effect.Ref
   ( Ref
   , new
