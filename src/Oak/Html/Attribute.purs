@@ -1,6 +1,11 @@
 module Oak.Html.Attribute where
 
-import Prelude ( (<>) )
+import Prelude
+  ( (<>)
+  , (>>>)
+  )
+
+import Data.Functor ( class Functor )
 
 import Oak.Css ( StyleAttribute )
 import Oak.Html.Present
@@ -29,6 +34,19 @@ data Attribute msg
   | SimpleAttribute String String
   | StringEventHandler String (String -> msg)
   | Style (Array StyleAttribute)
+
+instance attributeFunctor :: Functor Attribute where
+  map :: ∀ msg1 msg2. (msg1 -> msg2) -> Attribute msg1 -> Attribute msg2
+  map f attr =
+    case attr of
+      StringEventHandler n ctor -> StringEventHandler n (ctor >>> f)
+      EventHandler n msg -> EventHandler n (f msg)
+      KeyPressEventHandler n ctor -> KeyPressEventHandler n (ctor >>> f)
+      BooleanAttribute n bool -> BooleanAttribute n bool
+      DataAttribute n dat -> DataAttribute n dat
+      SimpleAttribute a b -> SimpleAttribute a b
+      Style a -> Style a
+
 
 
 -- special attrs
