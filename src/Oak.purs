@@ -1,6 +1,7 @@
 module Oak
   ( App
   , createApp
+  , unwrapApp
   , runApp
   ) where
 
@@ -89,6 +90,15 @@ createApp opts = App
   , update: opts.update
   }
 
+
+unwrapApp :: ∀ msg model flags.
+  App model msg flags ->
+    { init :: flags -> model
+    , update :: msg -> model -> model
+    , next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit
+    , view :: model -> Html msg
+    }
+unwrapApp (App app) = app
 
 -- | Kicks off the running app, and returns an effect
 -- | containing the root node of the app, which can
