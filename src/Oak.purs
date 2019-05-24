@@ -2,6 +2,7 @@ module Oak
   ( App
   , createApp
   , unwrapApp
+  , wrapNextHandler
   , runApp
   ) where
 
@@ -99,6 +100,11 @@ unwrapApp :: ∀ msg model flags.
     , view :: model -> Html msg
     }
 unwrapApp (App app) = app
+
+
+wrapNextHandler :: ∀ im om. (im -> om) -> (om -> Effect Unit) -> im -> Effect Unit
+wrapNextHandler wrap h im = h (wrap im)
+
 
 -- | Kicks off the running app, and returns an effect
 -- | containing the root node of the app, which can
