@@ -47,7 +47,7 @@ exports.patchImpl = function(newTree, oldTree, rootNode) {
 exports.concatHandlerFunImpl = function(name, msgHandler, rest) {
   var result = Object.assign({}, rest);
   result[name] = function(event) {
-    msgHandler(event)();
+    msgHandler(event);
   };
   return result;
 };
