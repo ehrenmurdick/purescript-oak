@@ -92,12 +92,12 @@ update msg model =
     GetRand ->
       model
 
-init :: Unit -> Model
-init _ =
+init :: Model
+init =
   { number: 0
   }
 
-app :: App Model Msg Unit
+app :: App Model Msg
 app = createApp
   { init: init
   , view: view
@@ -107,7 +107,7 @@ app = createApp
 
 main :: Effect Unit
 main = do
-  rootNode <- runApp app unit
+  rootNode <- runApp app
   container <- getElementById "app"
   appendChildNode container rootNode
 ```

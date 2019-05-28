@@ -2,7 +2,6 @@ module Oak
   ( App
   , createApp
   , unwrapApp
-  , wrapNextHandler
   , runApp
   ) where
 
@@ -37,14 +36,14 @@ import Oak.Document
   )
 
 
-data App model msg flags = App
-  { init :: flags -> model
+data App msg model = App
+  { init :: model
   , update :: msg -> model -> model
   , next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit
   , view :: model -> Html msg
   }
 
-data RunningApp model msg = RunningApp
+data RunningApp msg model = RunningApp
   { update :: msg -> model -> model
   , next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit
   , view :: model -> Html msg
@@ -56,8 +55,7 @@ data RunningApp model msg = RunningApp
 -- |
 -- | `init`:
 -- |
--- | A function from you flags type to the inital model state.
--- | Flags type can be `Unit` if you don't need this for anything.
+-- | the inital model state.
 -- |
 -- |
 -- | `view`:
@@ -78,12 +76,12 @@ data RunningApp model msg = RunningApp
 -- | Takes an incoming message, and the previous model state,
 -- | and returns the new model state.
 
-createApp :: ∀ msg model flags.
-  { init :: flags -> model
+createApp :: ∀ msg model .
+  { init :: model
   , update :: msg -> model -> model
   , next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit
   , view :: model -> Html msg
-  } -> App model msg flags
+  } -> App msg model
 createApp opts = App
   { init: opts.init
   , view: opts.view
@@ -92,9 +90,9 @@ createApp opts = App
   }
 
 
-unwrapApp :: ∀ msg model flags.
-  App model msg flags ->
-    { init :: flags -> model
+unwrapApp :: ∀ msg model.
+  App msg model ->
+    { init :: model
     , update :: msg -> model -> model
     , next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit
     , view :: model -> Html msg
@@ -102,18 +100,14 @@ unwrapApp :: ∀ msg model flags.
 unwrapApp (App app) = app
 
 
-wrapNextHandler :: ∀ im om. (im -> om) -> (om -> Effect Unit) -> im -> Effect Unit
-wrapNextHandler wrap h im = h (wrap im)
-
-
 -- | Kicks off the running app, and returns an effect
 -- | containing the root node of the app, which can
 -- | be used to embed the application. See the `main` function
 -- | of the example app in the readme.
-runApp :: ∀ model msg flags.
-  App model msg flags -> flags -> Effect Node
-runApp app flags = do
-  runApp_ app flags
+runApp :: ∀ msg model.
+  App msg model -> Effect Node
+runApp app = do
+  runApp_ app
 
 
 
@@ -125,7 +119,7 @@ type Runtime m =
 
 handler :: ∀ msg model.
   Ref.Ref (Runtime model)
-    -> RunningApp model msg
+    -> RunningApp msg model
     -> msg
     -> Effect Unit
 handler ref runningApp msg = do
@@ -145,16 +139,15 @@ handler ref runningApp msg = do
   app.next msg newModel (handler ref runningApp)
   mempty
 
-runApp_ :: ∀ model msg flags.
-  App model msg flags
-    -> flags
+runApp_ :: ∀ msg model.
+  App msg model
     -> Effect Node
-runApp_ (App app) flags = do
+runApp_ (App app) = do
   let runningApp = { view: app.view
                    , next: app.next
                    , update: app.update
                    }
-  let initialModel = app.init flags
+  let initialModel = app.init
   ref <- Ref.new { tree: Nothing, root: Nothing, model: initialModel }
   tree <- render (handler ref (RunningApp runningApp)) (runningApp.view initialModel)
   let rootNode = (N.createRootNode tree)
