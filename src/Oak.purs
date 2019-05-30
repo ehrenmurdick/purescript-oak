@@ -10,6 +10,7 @@ import Prelude
   , discard
   , pure
   , Unit
+  , unit
   )
 import Data.Monoid (mempty)
 import Effect (Effect)
@@ -105,9 +106,9 @@ unwrapApp (App app) = app
 -- | be used to embed the application. See the `main` function
 -- | of the example app in the readme.
 runApp :: ∀ msg model.
-  App msg model -> Effect Node
-runApp app = do
-  runApp_ app
+  App msg model -> Maybe msg -> Effect Node
+runApp msg app = do
+  runApp_ msg app
 
 
 
@@ -141,8 +142,9 @@ handler ref runningApp msg = do
 
 runApp_ :: ∀ msg model.
   App msg model
+    -> Maybe msg
     -> Effect Node
-runApp_ (App app) = do
+runApp_ (App app) msg = do
   let runningApp = { view: app.view
                    , next: app.next
                    , update: app.update
@@ -152,4 +154,7 @@ runApp_ (App app) = do
   tree <- render (handler ref (RunningApp runningApp)) (runningApp.view initialModel)
   let rootNode = (N.createRootNode tree)
   _ <- Ref.write { tree: Just tree, root: Just rootNode, model: initialModel } ref
+  case msg of
+    (Just m) -> handler ref (RunningApp runningApp) m
+    Nothing -> pure unit
   pure rootNode
