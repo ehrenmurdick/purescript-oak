@@ -202,6 +202,10 @@ emptyCells :: String -> StyleAttribute
 emptyCells val = StyleAttribute "empty-cells" val
 
 
+flex :: String -> StyleAttribute
+flex val = StyleAttribute "flex" val
+
+
 float :: String -> StyleAttribute
 float val = StyleAttribute "float" val
 
