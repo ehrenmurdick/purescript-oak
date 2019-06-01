@@ -1,5 +1,6 @@
 module Oak.Html.Events where
 
+import Prelude (map)
 import Oak.Html.Attribute
 
 
@@ -13,17 +14,28 @@ onInput f = StringEventHandler "oninput" f
 -- keypress events
 ------------------
 
-onKeydown :: ∀ msg. (KeyPressEvent -> msg) -> Attribute msg
-onKeydown f = KeyPressEventHandler "onkeydown" f
+onKeydown' :: ∀ msg. (KeyPressEvent -> msg) -> Attribute msg
+onKeydown' f = KeyPressEventHandler "onkeydown" f
 
 
-onKeypress :: ∀ msg.  (KeyPressEvent -> msg) -> Attribute msg
-onKeypress f = KeyPressEventHandler "onkeypress" f
+onKeydown :: ∀ msg. (Int -> msg) -> Attribute msg
+onKeydown f = onKeydown' (map f \e -> e.keyCode)
 
 
-onKeyup :: ∀ msg.  (KeyPressEvent -> msg) -> Attribute msg
-onKeyup f = KeyPressEventHandler "onkeyup" f
+onKeypress' :: ∀ msg.  (KeyPressEvent -> msg) -> Attribute msg
+onKeypress' f = KeyPressEventHandler "onkeypress" f
 
+
+onKeypress :: ∀ msg. (Int -> msg) -> Attribute msg
+onKeypress f = onKeypress' (map f \e -> e.keyCode)
+
+
+onKeyup' :: ∀ msg.  (KeyPressEvent -> msg) -> Attribute msg
+onKeyup' f = KeyPressEventHandler "onkeyup" f
+
+
+onKeyup :: ∀ msg. (Int -> msg) -> Attribute msg
+onKeyup f = onKeyup' (map f \e -> e.keyCode)
 
 
 -- events with no assoc data, e.g. onclick
