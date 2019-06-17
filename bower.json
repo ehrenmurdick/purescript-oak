@@ -21,7 +21,8 @@
     "purescript-refs": "^4.1.0",
     "purescript-aff": "^5.1.1",
     "purescript-either": "^4.1.1",
-    "purescript-exceptions": "^4.0.0"
+    "purescript-exceptions": "^4.0.0",
+    "purescript-transformers": "^4.2.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^4.0.0",
