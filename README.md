@@ -18,96 +18,44 @@ A breif example Oak app:
 ```
 module Main (main) where
 
-import Prelude
-  ( Unit
-  , (+)
-  , (-)
-  , bind
-  , unit
-  , discard
-  )
-
-import Data.Monoid (mempty)
-import Effect.Random (randomInt)
-
-import Effect (Effect)
-import Effect.Console (log)
 import Oak
-  ( App
-  , createApp
-  , runApp
-  )
-import Oak.Html
-  ( Html
-  , div
-  , text
-  , button
-  , br
-  )
-import Oak.Html.Events ( onClick )
-import Oak.Document
-  ( appendChildNode
-  , getElementById
-  )
 
+import Prelude hiding (div)
 
-type Model =
-  { number :: Int
-  }
-
+type Model
+  = {number :: Int}
 
 data Msg
   = Inc
   | Dec
-  | GetRand
-  | Set Int
-
 
 view :: Model -> Html Msg
-view model =
-  div []
-    [ button [ onClick Inc ] [ text "+" ]
-    , div [] [ text model.number ]
-    , button [ onClick Dec ] [ text "-" ]
-    , br [] []
-    , button [ onClick GetRand ] [ text "random" ]
-    ]
+view model = root [] do
+  div [] do
+    button [onClick Inc] do
+      text "+"
+    div [] do
+      text model.number
+    button [onClick Dec] do
+      text "-"
 
 next :: Msg -> Model -> (Msg -> Effect Unit) -> Effect Unit
-next GetRand model h = do
-  log "generating random int"
-  n <- randomInt 0 100
-  h (Set n)
-next _ _ _       = mempty
+next msg mod h = mempty
 
 update :: Msg -> Model -> Model
-update msg model =
-  case msg of
-    Inc ->
-      model { number = model.number + 1 }
-    Dec ->
-      model { number = model.number - 1 }
-    (Set n) ->
-      model { number = n }
-    GetRand ->
-      model
+update msg model = case msg of
+  Inc -> model { number = model.number + 1 }
+  Dec -> model { number = model.number - 1 }
 
 init :: Model
-init =
-  { number: 0
-  }
+init = { number: 0 }
 
-app :: App Model Msg
-app = createApp
-  { init: init
-  , view: view
-  , update: update
-  , next: next
-  }
+app :: App Msg Model
+app = createApp { init, view, update, next }
 
 main :: Effect Unit
 main = do
-  rootNode <- runApp app
+  rootNode <- runApp app Nothing
   container <- getElementById "app"
   appendChildNode container rootNode
 ```
