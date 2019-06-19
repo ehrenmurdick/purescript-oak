@@ -25,7 +25,6 @@ import Prelude
   , unit
   )
 import Data.Monoid (mempty)
-import Effect (Effect)
 import Effect.Ref
   ( Ref
   , new
@@ -38,15 +37,11 @@ import Data.Maybe
   , fromJust
   )
 
-import Oak.Html (Html)
 import Oak.VirtualDom
   ( patch
   , render
   )
 import Oak.VirtualDom.Native as N
-import Oak.Document
-  ( Node
-  )
 
 
 data App msg model = App

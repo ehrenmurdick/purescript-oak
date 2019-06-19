@@ -19,7 +19,6 @@ import Oak.Html.Present
   )
 import Oak.Html.Attribute ( Attribute )
 
-import Data.Tuple (fst)
 
 data Html msg
   = Text String
