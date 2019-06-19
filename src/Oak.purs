@@ -3,7 +3,19 @@ module Oak
   , createApp
   , unwrapApp
   , runApp
+  , module Oak.Document
+  , module Oak.Html
+  , module Oak.Html.Events
+  , module Data.Either
+  , module Data.Maybe
+  , module Effect
   ) where
+
+import Oak.Document
+import Oak.Html
+import Oak.Html.Events
+import Data.Either
+import Effect
 
 import Prelude
   ( bind
