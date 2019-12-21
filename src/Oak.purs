@@ -1,61 +1,36 @@
 module Oak
-  ( App
-  , createApp
-  , unwrapApp
-  , runApp
+  ( module Data.Either
+  , module Data.Maybe
+  , module Effect
   , module Oak.Document
   , module Oak.Html
   , module Oak.Html.Events
-  , module Data.Either
-  , module Data.Maybe
-  , module Effect
+  , App
+  , createApp
+  , runApp
+  , unwrapApp
   ) where
 
+import Data.Either
+import Effect
 import Oak.Document
 import Oak.Html
 import Oak.Html.Events
-import Data.Either
-import Effect
 
-import Prelude
-  ( bind
-  , discard
-  , pure
-  , Unit
-  , unit
-  )
+import Data.Maybe (Maybe(..), fromJust)
 import Data.Monoid (mempty)
-import Effect.Ref
-  ( Ref
-  , new
-  , read
-  , write
-  ) as Ref
+import Effect.Ref (Ref, new, read, write) as Ref
+import Oak.VirtualDom (patch, render)
 import Partial.Unsafe (unsafePartial)
-import Data.Maybe
-  ( Maybe(..)
-  , fromJust
-  )
+import Prelude (bind, discard, pure, Unit, unit)
 
-import Oak.VirtualDom
-  ( patch
-  , render
-  )
 import Oak.VirtualDom.Native as N
 
+data App msg model
+  = App {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, view :: model -> View msg}
 
-data App msg model = App
-  { init :: model
-  , update :: msg -> model -> model
-  , next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit
-  , view :: model -> Html msg
-  }
-
-data RunningApp msg model = RunningApp
-  { update :: msg -> model -> model
-  , next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit
-  , view :: model -> Html msg
-  }
+data RunningApp msg model
+  = RunningApp {update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, view :: model -> View msg}
 
 -- | createApp takes a record with a description of your Oak app.
 -- | It has a few parts:
@@ -83,84 +58,70 @@ data RunningApp msg model = RunningApp
 -- |
 -- | Takes an incoming message, and the previous model state,
 -- | and returns the new model state.
+createApp ::
+  forall msg model.
+  {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, view :: model -> View msg} ->
+  App msg model
+createApp opts = App { init: opts.init
+                     , view: opts.view
+                     , next: opts.next
+                     , update: opts.update
+                     }
 
-createApp :: ∀ msg model .
-  { init :: model
-  , update :: msg -> model -> model
-  , next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit
-  , view :: model -> Html msg
-  } -> App msg model
-createApp opts = App
-  { init: opts.init
-  , view: opts.view
-  , next: opts.next
-  , update: opts.update
-  }
-
-
-unwrapApp :: ∀ msg model.
+unwrapApp ::
+  forall msg model.
   App msg model ->
-    { init :: model
-    , update :: msg -> model -> model
-    , next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit
-    , view :: model -> Html msg
-    }
+  {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, view :: model -> View msg}
 unwrapApp (App app) = app
-
 
 -- | Kicks off the running app, and returns an effect
 -- | containing the root node of the app, which can
 -- | be used to embed the application. See the `main` function
 -- | of the example app in the readme.
-runApp :: ∀ msg model.
-  App msg model -> Maybe msg -> Effect Node
+runApp ::
+  forall msg model.
+  App msg model ->
+  Maybe msg ->
+  Effect (Array Node)
 runApp msg app = do
   runApp_ msg app
 
+type Runtime m
+  = {tree :: Array N.Tree, root :: Array Node, model :: m}
 
-
-type Runtime m =
-  { tree :: Maybe N.Tree
-  , root :: Maybe Node
-  , model :: m
-  }
-
-handler :: ∀ msg model.
-  Ref.Ref (Runtime model)
-    -> RunningApp msg model
-    -> msg
-    -> Effect Unit
+handler ::
+  forall msg model.
+  Ref.Ref (Runtime model) ->
+  RunningApp msg model ->
+  msg ->
+  Effect Unit
 handler ref runningApp msg = do
   env <- Ref.read ref
   let (RunningApp app) = runningApp
-  let oldTree = unsafePartial (fromJust env.tree)
-  let root = unsafePartial (fromJust env.root)
+  let oldTree = env.tree
+  let root = env.root
   let newModel = app.update msg env.model
-  newTree <- render (handler ref runningApp) (app.view newModel)
+  newTree <- render (handler ref runningApp) (runBuilder (app.view newModel) [])
   newRoot <- patch newTree oldTree env.root
-  let newRuntime =
-        { root: Just newRoot
-        , tree: Just newTree
-        , model: newModel
-        }
+  let newRuntime = { root: newRoot
+                   , tree: newTree
+                   , model: newModel
+                   }
   Ref.write newRuntime ref
   app.next msg newModel (handler ref runningApp)
   mempty
 
-runApp_ :: ∀ msg model.
-  App msg model
-    -> Maybe msg
-    -> Effect Node
+runApp_ :: forall msg model. App msg model -> Maybe msg -> Effect (Array Node)
 runApp_ (App app) msg = do
   let runningApp = { view: app.view
                    , next: app.next
                    , update: app.update
                    }
   let initialModel = app.init
-  ref <- Ref.new { tree: Nothing, root: Nothing, model: initialModel }
-  tree <- render (handler ref (RunningApp runningApp)) (runningApp.view initialModel)
+  ref <- Ref.new { tree: [], root: [], model: initialModel }
+  tree <- render (handler ref (RunningApp runningApp)) (runBuilder (runningApp.view initialModel) [])
   let rootNode = (N.createRootNode tree)
-  _ <- Ref.write { tree: Just tree, root: Just rootNode, model: initialModel } ref
+  _ <- Ref.write { tree, root: rootNode, model: initialModel } ref
   case msg of
     (Just m) -> handler ref (RunningApp runningApp) m
     Nothing -> pure unit

@@ -2,7 +2,7 @@ module Oak.Html where
 
 import Control.Monad.Writer
 
-import Data.Array (concat)
+import Data.Array (snoc)
 import Oak.Html.Attribute (Attribute)
 import Oak.Html.Present (present, class Present)
 import Prelude
@@ -18,8 +18,10 @@ import Prelude
   , ($)
   , (<<<)
   , unit
+  , (>>=)
   , Unit
   , pure
+  , bind
   )
 
 data Html msg
@@ -30,10 +32,7 @@ data T a b
   = T a b
 
 data Builder s a
-  = Builder (State s -> (T a (State s)))
-
-data State s
-  = State s
+  = Builder (s -> (T a s))
 
 instance builderFunctor :: Functor (Builder s) where
   map f b = Builder $ \s ->
@@ -61,6 +60,18 @@ instance builderBind :: Bind (Builder s) where
         Builder new_b = f v
     in new_b new_s
 
+put :: forall s. s -> Builder s Unit
+put s = Builder $ \_ ->
+  T unit s
+
+get :: forall s. Builder s s
+get = Builder $ \s ->
+  T s s
+
+runBuilder :: forall msg. View msg -> Array (Html msg) -> Array (Html msg)
+runBuilder (Builder b_a) s = let T v new_s = b_a s
+                             in new_s
+
 instance htmlFunctor :: Functor Html where
   map ::
     forall msg1 msg2.
@@ -70,3 +81,27 @@ instance htmlFunctor :: Functor Html where
   map f html = case html of
     Text str -> Text str
     Tag name attrs children -> Tag name (map (map f) attrs) (map (map f) children)
+
+type View msg
+  = Builder (Array (Html msg)) Unit
+
+text :: forall msg. String -> View msg
+text s = do
+  xs <- get
+  let tag = Text s
+  put (snoc xs tag)
+
+empty :: forall msg. View msg
+empty = text ""
+
+div :: forall msg. Array (Attribute msg) -> View msg -> View msg
+div attrs m = do
+  xs <- get
+  let tag = Tag "div" attrs (runBuilder m [])
+  put (snoc xs tag)
+
+view :: forall msg. View msg
+view = do
+  div [] do
+    div [] do
+      empty

@@ -18,20 +18,20 @@ foreign import data NativeAttrs :: Type
 foreign import emptyAttrs :: NativeAttrs
 
 foreign import patchImpl ::
-  Fn3 Tree Tree Node (Effect Node)
+  Fn3 (Array Tree) (Array Tree) (Array Node) (Effect (Array Node))
 
 patch ::
-  Tree
-    -> Tree
-    -> Node
-    -> Effect Node
+  Array Tree
+    -> Array Tree
+    -> Array Node
+    -> Effect (Array Node)
 patch = runFn3 patchImpl
 
 foreign import createRootNodeImpl ::
-  Fn1 Tree Node
+  Fn1 (Array Tree) (Array Node)
 
 createRootNode ::
-  Tree -> Node
+  Array Tree -> Array Node
 createRootNode = runFn1 createRootNodeImpl
 
 foreign import concatSimpleAttrImpl ::

@@ -23,12 +23,12 @@ foreign import getElementByIdImpl ::
 
 foreign import appendChildNodeImpl ::
   Element
-    -> Node
+    -> (Array Node)
     -> Effect Unit
 
 appendChildNode ::
   Element
-    -> Node
+    -> Array Node
     -> Effect Unit
 appendChildNode element rootNode =
   appendChildNodeImpl element rootNode
