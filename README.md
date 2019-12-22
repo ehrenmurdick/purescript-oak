@@ -30,8 +30,7 @@ data Msg
   | Dec
 
 view :: Model -> Html Msg
-view model = root [] do
-  div [] do
+view model = div [] do
     button [onClick Inc] do
       text "+"
     div [] do
