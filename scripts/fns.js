@@ -1,14 +1,12 @@
 const fs = require('fs');
 
+// div :: forall msg. Array (Attribute msg) -> View msg -> View msg
 const template = (tag) => `
-${tag} :: ∀ msg.
-  Array (Attribute msg)
-    -> Writer (Array (Html msg)) Unit
-    -> Writer (Array (Html msg)) Unit
+${tag} :: forall msg.  Array (Attribute msg) -> View msg -> View msg
 ${tag} = mkTagFn "${tag.replace('_', '')}"
 `;
 
-fs.readFile('tags.txt', (err, data) => {
+fs.readFile('scripts/tags.txt', (err, data) => {
   const tags = String(data).split("\n");
 
   tags.forEach(tag => {
