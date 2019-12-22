@@ -11,6 +11,9 @@ import Prelude
   , class Applicative
   , class Bind
   , class Monad
+  , class Monoid
+  , class Semigroup
+  , mempty
   , discard
   , apply
   , map
@@ -52,6 +55,16 @@ instance builderApplicative :: Applicative (Builder s) where
   pure a = Builder $ \s ->
     T a s
 
+instance builderMonoid :: (Monoid a, Monoid s) => Monoid (Builder s a) where
+  mempty = Builder $ \s ->
+    T mempty mempty
+
+instance builderSemigroup :: Semigroup (Builder s a) where
+  append (Builder b_a) (Builder a_a) = Builder $ \s ->
+    let T v s_a = a_a s
+        T x new_s = b_a s_a
+    in T x new_s
+
 instance builderBind :: Bind (Builder s) where
   bind :: forall a b s. Builder s a -> (a -> Builder s b) -> Builder s b
   bind b f = Builder $ \s ->
@@ -68,9 +81,9 @@ get :: forall s. Builder s s
 get = Builder $ \s ->
   T s s
 
-runBuilder :: forall msg. View msg -> Array (Html msg) -> Array (Html msg)
-runBuilder (Builder b_a) s = let T v new_s = b_a s
-                             in new_s
+runBuilder :: forall msg. View msg -> Array (Html msg)
+runBuilder (Builder b_a) = let T v new_s = b_a []
+                           in new_s
 
 instance htmlFunctor :: Functor Html where
   map ::
@@ -97,11 +110,5 @@ empty = text ""
 div :: forall msg. Array (Attribute msg) -> View msg -> View msg
 div attrs m = do
   xs <- get
-  let tag = Tag "div" attrs (runBuilder m [])
+  let tag = Tag "div" attrs (runBuilder m)
   put (snoc xs tag)
-
-view :: forall msg. View msg
-view = do
-  div [] do
-    div [] do
-      empty

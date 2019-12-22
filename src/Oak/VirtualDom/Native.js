@@ -8,10 +8,8 @@ var createElement = require("virtual-dom/create-element");
 exports.createRootNodeImpl = function(trees) {
   var newtrees = [];
   for (var i in trees) {
-    console.log(trees[i]);
     newtrees[i] = createElement(trees[i]);
   }
-  console.log(newtrees);
   return newtrees;
 };
 
