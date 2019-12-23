@@ -25,6 +25,7 @@ import Prelude
   , Unit
   , pure
   , bind
+  , join
   )
 
 data Html msg
@@ -36,6 +37,16 @@ data T a b
 
 data Builder s a
   = Builder (s -> (T a s))
+
+mapMsg :: forall a b. (a -> b) -> View a -> View b
+mapMsg f (Builder v) = do
+  let ff = mapMap f
+      mapMap :: forall a1 b1. (a1 -> b1) -> Array (Html a1) -> Array (Html b1)
+      mapMap f a = map (map f) a
+      T _ s = v []
+      ss = ff s
+  prev <- get
+  put $ join [prev, ss]
 
 instance builderFunctor :: Functor (Builder s) where
   map f b = Builder $ \s ->
