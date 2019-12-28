@@ -1,7 +1,6 @@
 module Oak
   ( module Data.Either
   , module Data.Maybe
-  , module Effect
   , module Oak.Document
   , module Oak.Html
   , module Oak.Html.Events
@@ -11,17 +10,27 @@ module Oak
   , unwrapApp
   ) where
 
-import Data.Either
-import Effect
-import Oak.Document
 import Oak.Html
 import Oak.Html.Events
 
+import Data.Either
+  ( Either(..)
+  , choose
+  , either
+  , fromLeft
+  , fromRight
+  , hush
+  , isLeft
+  , isRight
+  , note
+  , note'
+  )
 import Data.Maybe (Maybe(..), fromJust)
 import Data.Monoid (mempty)
+import Effect (Effect)
 import Effect.Ref (Ref, new, read, write) as Ref
+import Oak.Document (Element, Node, appendChildNode, getElementById)
 import Oak.VirtualDom (patch, render)
-import Partial.Unsafe (unsafePartial)
 import Prelude (bind, discard, pure, Unit, unit)
 
 import Oak.VirtualDom.Native as N

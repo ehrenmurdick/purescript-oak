@@ -1,7 +1,5 @@
 module Oak.Html where
 
-import Control.Monad.Writer
-
 import Data.Array (snoc)
 import Oak.Html.Attribute (Attribute)
 import Oak.Html.Present (present, class Present)
@@ -10,20 +8,13 @@ import Prelude
   , class Apply
   , class Applicative
   , class Bind
-  , class Monad
   , class Monoid
   , class Semigroup
   , mempty
-  , discard
-  , apply
   , map
-  , pure
   , ($)
-  , (<<<)
   , unit
-  , (>>=)
   , Unit
-  , pure
   , bind
   , join
   )
@@ -35,62 +26,62 @@ data Html msg
 data T a b
   = T a b
 
-data Builder s a
-  = Builder (s -> (T a s))
+data Builder st a
+  = Builder (st -> (T a st))
 
 mapMsg :: forall a b. (a -> b) -> View a -> View b
-mapMsg f (Builder v) = do
-  let ff = mapMap f
+mapMsg func (Builder v) = do
+  let ff = mapMap func
       mapMap :: forall a1 b1. (a1 -> b1) -> Array (Html a1) -> Array (Html b1)
-      mapMap f a = map (map f) a
-      T _ s = v []
-      ss = ff s
-  prev <- get
-  put $ join [prev, ss]
+      mapMap f2 appl = map (map f2) appl
+      T _ st = v []
+      ss = ff st
+  prev <- getBuilder
+  putBuilder $ join [prev, ss]
 
-instance builderFunctor :: Functor (Builder s) where
-  map f b = Builder $ \s ->
-    let Builder b_a = b
-        T v new_s = b_a s
-    in T (f v) new_s
+instance builderFunctor :: Functor (Builder st) where
+  map func builder = Builder $ \st ->
+    let Builder b_a = builder
+        T v new_s = b_a st
+    in T (func v) new_s
 
-instance builderApply :: Apply (Builder s) where
-  apply a b = Builder $ \s ->
-    let Builder b_a = a
-        T f new_s = b_a s
-        Builder a_a = b
+instance builderApply :: Apply (Builder st) where
+  apply appl builder = Builder $ \st ->
+    let Builder b_a = appl
+        T func new_s = b_a st
+        Builder a_a = builder
         T v new_s_ = a_a new_s
-    in T (f v) new_s_
+    in T (func v) new_s_
 
-instance builderApplicative :: Applicative (Builder s) where
-  pure a = Builder $ \s ->
-    T a s
+instance builderApplicative :: Applicative (Builder st) where
+  pure appl = Builder $ \st ->
+    T appl st
 
-instance builderMonoid :: (Monoid a, Monoid s) => Monoid (Builder s a) where
-  mempty = Builder $ \s ->
+instance builderMonoid :: (Monoid appl, Monoid st) => Monoid (Builder st appl) where
+  mempty = Builder $ \st ->
     T mempty mempty
 
-instance builderSemigroup :: Semigroup (Builder s a) where
-  append (Builder b_a) (Builder a_a) = Builder $ \s ->
-    let T v s_a = a_a s
+instance builderSemigroup :: Semigroup (Builder st appl) where
+  append (Builder b_a) (Builder a_a) = Builder $ \st ->
+    let T v s_a = a_a st
         T x new_s = b_a s_a
     in T x new_s
 
-instance builderBind :: Bind (Builder s) where
-  bind :: forall a b s. Builder s a -> (a -> Builder s b) -> Builder s b
-  bind b f = Builder $ \s ->
-    let Builder b_a = b
-        T v new_s = b_a s
-        Builder new_b = f v
+instance builderBind :: Bind (Builder st) where
+  bind :: forall appl b st. Builder st appl -> (appl -> Builder st b) -> Builder st b
+  bind builder func = Builder $ \st ->
+    let Builder b_a = builder
+        T v new_s = b_a st
+        Builder new_b = func v
     in new_b new_s
 
-put :: forall s. s -> Builder s Unit
-put s = Builder $ \_ ->
-  T unit s
+putBuilder :: forall st. st -> Builder st Unit
+putBuilder val = Builder $ \_ ->
+  T unit val
 
-get :: forall s. Builder s s
-get = Builder $ \s ->
-  T s s
+getBuilder :: forall st. Builder st st
+getBuilder = Builder $ \val ->
+  T val val
 
 runBuilder :: forall msg. View msg -> Array (Html msg)
 runBuilder (Builder b_a) = let T v new_s = b_a []
@@ -102,27 +93,27 @@ instance htmlFunctor :: Functor Html where
     (msg1 -> msg2) ->
     Html msg1 ->
     Html msg2
-  map f html = case html of
+  map func html = case html of
     Text str -> Text str
-    Tag name attrs children -> Tag name (map (map f) attrs) (map (map f) children)
+    Tag name attrs children -> Tag name (map (map func) attrs) (map (map func) children)
 
 type View msg
   = Builder (Array (Html msg)) Unit
 
-text :: forall msg. String -> View msg
-text s = do
-  xs <- get
-  let tag = Text s
-  put (snoc xs tag)
+text :: forall appl msg. Present appl => appl -> View msg
+text val = do
+  xs <- getBuilder
+  let tag = Text (present val)
+  putBuilder (snoc xs tag)
 
 empty :: forall msg. View msg
 empty = text ""
 
 mkTagFn :: forall msg. String -> Array (Attribute msg) -> View msg -> View msg
 mkTagFn n attrs m = do
-  xs <- get
+  xs <- getBuilder
   let tag = Tag n attrs (runBuilder m)
-  put (snoc xs tag)
+  putBuilder (snoc xs tag)
 
 a :: forall msg. Array (Attribute msg) -> View msg -> View msg
 a = mkTagFn "a"

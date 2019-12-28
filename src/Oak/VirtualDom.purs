@@ -1,17 +1,12 @@
 module Oak.VirtualDom where
 
-import Data.Array (concat)
 import Data.Foldable (intercalate)
-import Data.Maybe (Maybe, fromJust)
-import Data.Monoid (mempty)
-import Data.Semigroup (append)
 import Data.Traversable (foldr, sequence)
 import Effect (Effect)
 import Oak.Css (StyleAttribute(..))
 import Oak.Document (Node)
 import Oak.Html (Html(..))
 import Oak.Html.Attribute (Attribute(..))
-import Partial.Unsafe (unsafePartial)
 import Prelude (map, ($), (<>))
 
 import Oak.VirtualDom.Native as N
