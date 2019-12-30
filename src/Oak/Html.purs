@@ -1,6 +1,6 @@
 module Oak.Html where
 
-import Data.Array (snoc)
+import Data.Array (cons)
 import Oak.Html.Attribute (Attribute)
 import Oak.Html.Present (present, class Present)
 import Prelude
@@ -104,7 +104,7 @@ text :: forall appl msg. Present appl => appl -> View msg
 text val = do
   xs <- getBuilder
   let tag = Text (present val)
-  putBuilder (snoc xs tag)
+  putBuilder (cons tag xs)
 
 empty :: forall msg. View msg
 empty = text ""
@@ -113,7 +113,7 @@ mkTagFn :: forall msg. String -> Array (Attribute msg) -> View msg -> View msg
 mkTagFn n attrs m = do
   xs <- getBuilder
   let tag = Tag n attrs (runBuilder m)
-  putBuilder (snoc xs tag)
+  putBuilder (cons tag xs)
 
 a :: forall msg. Array (Attribute msg) -> View msg -> View msg
 a = mkTagFn "a"
