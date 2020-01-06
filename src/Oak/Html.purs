@@ -107,7 +107,7 @@ text val = do
   putBuilder (cons tag xs)
 
 empty :: forall msg. View msg
-empty = text ""
+empty = mempty
 
 mkTagFn :: forall msg. String -> Array (Attribute msg) -> View msg -> View msg
 mkTagFn n attrs m = do
