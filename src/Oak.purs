@@ -11,7 +11,6 @@ module Oak
   ) where
 
 import Oak.Html
-import Oak.Html.Events
 
 import Data.Either
   ( Either(..)
@@ -30,6 +29,78 @@ import Data.Monoid (mempty)
 import Effect (Effect)
 import Effect.Ref (Ref, new, read, write) as Ref
 import Oak.Document (Element, Node, appendChildNode, getElementById)
+import Oak.Html.Events
+  ( onAbort
+  , onAfterprint
+  , onBeforeprint
+  , onBeforeunload
+  , onBlur
+  , onCanplay
+  , onCanplaythrough
+  , onChange
+  , onClick
+  , onContextmenu
+  , onCopy
+  , onCuechange
+  , onCut
+  , onDblclick
+  , onDrag
+  , onDragend
+  , onDragenter
+  , onDragleave
+  , onDragover
+  , onDragstart
+  , onDrop
+  , onDurationchange
+  , onEmptied
+  , onEnded
+  , onError
+  , onFocus
+  , onHashchange
+  , onInput
+  , onInvalid
+  , onKeydown
+  , onKeypress
+  , onKeyup
+  , onLoad
+  , onLoadeddata
+  , onLoadedmetadata
+  , onLoadstart
+  , onMousedown
+  , onMousemove
+  , onMouseout
+  , onMouseover
+  , onMouseup
+  , onMousewheel
+  , onOffline
+  , onOnline
+  , onPagehide
+  , onPageshow
+  , onPaste
+  , onPause
+  , onPlay
+  , onPlaying
+  , onPopstate
+  , onProgress
+  , onRatechange
+  , onReset
+  , onResize
+  , onScroll
+  , onSearch
+  , onSeeked
+  , onSeeking
+  , onSelect
+  , onStalled
+  , onStorage
+  , onSubmit
+  , onSuspend
+  , onTimeupdate
+  , onToggle
+  , onUnload
+  , onVolumechange
+  , onWaiting
+  , onWheel
+  )
 import Oak.VirtualDom (patch, render)
 import Prelude (bind, discard, pure, Unit, unit)
 
