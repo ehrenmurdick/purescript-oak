@@ -137,8 +137,8 @@ cite :: ∀ msg v. Present v => v -> Attribute msg
 cite val = SimpleAttribute "cite" (present val)
 
 
-class_ :: ∀ msg v. Present v => v -> Attribute msg
-class_ val = SimpleAttribute "className" (present val)
+className :: ∀ msg v. Present v => v -> Attribute msg
+className val = SimpleAttribute "className" (present val)
 
 
 color :: ∀ msg v. Present v => v -> Attribute msg
