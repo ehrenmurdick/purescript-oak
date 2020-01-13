@@ -1,40 +1,24 @@
-module Oak.Document
-  ( Node
-  , Element
-  , appendChildNode
-  , getElementById
-  ) where
+module Oak.Document (Element, Node, onDocumentReady, appendChildNode, getElementById) where
 
-
-import Prelude (Unit)
+import Data.Function.Uncurried (Fn1, runFn1)
 import Effect (Effect)
-import Data.Function.Uncurried
-  ( Fn1
-  , runFn1
-  )
+import Prelude (Unit)
 
 foreign import data Element :: Type
+
 foreign import data Node :: Type
 
-foreign import getElementByIdImpl ::
-  Fn1
-  String
-  (Effect Element)
+foreign import getElementByIdImpl :: Fn1 String (Effect Element)
 
-foreign import appendChildNodeImpl ::
-  Element
-    -> (Array Node)
-    -> Effect Unit
+foreign import onDocumentReadyImpl :: Fn1 (Effect Unit) (Effect Unit)
 
-appendChildNode ::
-  Element
-    -> Array Node
-    -> Effect Unit
-appendChildNode element rootNode =
-  appendChildNodeImpl element rootNode
+foreign import appendChildNodeImpl :: Element -> (Array Node) -> Effect Unit
 
-getElementById ::
-  String
-    -> Effect Element
+appendChildNode :: Element -> Array Node -> Effect Unit
+appendChildNode element rootNode = appendChildNodeImpl element rootNode
+
+getElementById :: String -> Effect Element
 getElementById = runFn1 getElementByIdImpl
 
+onDocumentReady :: Effect Unit -> Effect Unit
+onDocumentReady = runFn1 onDocumentReadyImpl

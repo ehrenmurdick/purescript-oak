@@ -28,7 +28,7 @@ import Data.Maybe (Maybe(..), fromJust)
 import Data.Monoid (mempty)
 import Effect (Effect)
 import Effect.Ref (Ref, new, read, write) as Ref
-import Oak.Document (Element, Node, appendChildNode, getElementById)
+import Oak.Document (Element, Node, appendChildNode, getElementById, onDocumentReady)
 import Oak.Html.Events
   ( onAbort
   , onAfterprint

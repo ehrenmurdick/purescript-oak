@@ -18,3 +18,9 @@ exports.appendChildNodeImpl = function(container) {
     };
   };
 };
+
+exports.onDocumentReadyImpl = function(eff) {
+  return function() {
+    document.addEventListener("DOMContentLoaded", eff);
+  }
+};
