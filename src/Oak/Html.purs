@@ -13,6 +13,7 @@ import Prelude
   , mempty
   , map
   , ($)
+  , show
   , unit
   , Unit
   , bind
@@ -114,9 +115,14 @@ class BodyAble a m where
 instance bodyAbleBuilder :: BodyAble (Builder (Array (Html msg)) Unit) msg where
   bodify = runBuilder
 
-else instance bodyAblePresentable :: (Present a) => BodyAble a m where
-  bodify :: forall a. Present a => a -> Array (Html m)
-  bodify str = [Text (present str)]
+instance bodyAbleString :: BodyAble String msg where
+  bodify v = [Text v]
+
+instance bodyAbleInt :: BodyAble Int msg where
+  bodify v = [Text $ show v]
+
+instance bodyAbleBoolean :: BodyAble Boolean msg where
+  bodify v = [Text $ show v]
 
 text :: forall appl msg. Present appl => appl -> View msg
 text val = do
