@@ -57,7 +57,11 @@ instance builderApplicative :: Applicative (Builder st) where
   pure appl = Builder $ \st ->
     T appl st
 
-instance builderMonoid :: (Monoid appl, Monoid st) => Monoid (Builder st appl) where
+instance builderMonoid ::
+  ( Monoid appl
+  , Monoid st
+  ) =>
+  Monoid (Builder st appl) where
   mempty = Builder $ \st ->
     T mempty mempty
 
@@ -68,7 +72,11 @@ instance builderSemigroup :: Semigroup (Builder st appl) where
     in T x new_s
 
 instance builderBind :: Bind (Builder st) where
-  bind :: forall appl b st. Builder st appl -> (appl -> Builder st b) -> Builder st b
+  bind ::
+    forall appl b st.
+    Builder st appl ->
+    (appl -> Builder st b) ->
+    Builder st b
   bind builder func = Builder $ \st ->
     let Builder b_a = builder
         T v new_s = b_a st
@@ -100,6 +108,16 @@ instance htmlFunctor :: Functor Html where
 type View msg
   = Builder (Array (Html msg)) Unit
 
+class BodyAble a m where
+  bodify :: a -> Array (Html m)
+
+instance bodyAbleBuilder :: BodyAble (Builder (Array (Html msg)) Unit) msg where
+  bodify = runBuilder
+
+else instance bodyAblePresentable :: (Present a) => BodyAble a m where
+  bodify :: forall a. Present a => a -> Array (Html m)
+  bodify str = [Text (present str)]
+
 text :: forall appl msg. Present appl => appl -> View msg
 text val = do
   xs <- getBuilder
@@ -109,10 +127,16 @@ text val = do
 empty :: forall msg. View msg
 empty = mempty
 
-mkTagFn :: forall msg. String -> Array (Attribute msg) -> View msg -> View msg
+mkTagFn ::
+  forall body msg.
+  BodyAble body msg =>
+  String ->
+  Array (Attribute msg) ->
+  body ->
+  View msg
 mkTagFn n attrs m = do
   xs <- getBuilder
-  let tag = Tag n attrs (runBuilder m)
+  let tag = Tag n attrs (bodify m)
   putBuilder (snoc xs tag)
 
 a :: forall msg. Array (Attribute msg) -> View msg -> View msg
