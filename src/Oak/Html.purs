@@ -1,6 +1,6 @@
 module Oak.Html where
 
-import Data.Array (cons)
+import Data.Array (cons, reverse)
 import Oak.Html.Attribute (Attribute)
 import Oak.Html.Present (present, class Present)
 import Prelude
@@ -85,7 +85,7 @@ getBuilder = Builder $ \val ->
 
 runBuilder :: forall msg. View msg -> Array (Html msg)
 runBuilder (Builder b_a) = let T v new_s = b_a []
-                           in new_s
+                           in reverse new_s
 
 instance htmlFunctor :: Functor Html where
   map ::
