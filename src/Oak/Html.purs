@@ -1,6 +1,6 @@
 module Oak.Html where
 
-import Data.Array (snoc)
+import Data.Array (cons, reverse)
 import Oak.Html.Attribute (Attribute)
 import Oak.Html.Present (present, class Present)
 import Prelude
@@ -94,7 +94,7 @@ getBuilder = Builder $ \val ->
 
 runBuilder :: forall msg. View msg -> Array (Html msg)
 runBuilder (Builder b_a) = let T v new_s = b_a []
-                           in new_s
+                           in reverse new_s
 
 instance htmlFunctor :: Functor Html where
   map ::
@@ -124,11 +124,11 @@ instance bodyAbleInt :: BodyAble Int msg where
 instance bodyAbleBoolean :: BodyAble Boolean msg where
   bodify v = [Text $ show v]
 
-text :: forall appl msg. Present appl => appl -> View msg
+text :: forall v msg. Present v => v -> View msg
 text val = do
   xs <- getBuilder
   let tag = Text (present val)
-  putBuilder (snoc xs tag)
+  putBuilder (cons tag xs)
 
 empty :: forall msg. View msg
 empty = mempty
@@ -143,7 +143,7 @@ mkTagFn ::
 mkTagFn n attrs m = do
   xs <- getBuilder
   let tag = Tag n attrs (bodify m)
-  putBuilder (snoc xs tag)
+  putBuilder (cons tag xs)
 
 a ::
   forall body msg.
