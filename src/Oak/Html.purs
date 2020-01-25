@@ -13,7 +13,6 @@ import Prelude
   , mempty
   , map
   , ($)
-  , show
   , unit
   , Unit
   , bind
@@ -109,21 +108,6 @@ instance htmlFunctor :: Functor Html where
 type View msg
   = Builder (Array (Html msg)) Unit
 
-class BodyAble a m where
-  bodify :: a -> Array (Html m)
-
-instance bodyAbleBuilder :: BodyAble (Builder (Array (Html msg)) Unit) msg where
-  bodify = runBuilder
-
-instance bodyAbleString :: BodyAble String msg where
-  bodify v = [Text v]
-
-instance bodyAbleInt :: BodyAble Int msg where
-  bodify v = [Text $ show v]
-
-instance bodyAbleBoolean :: BodyAble Boolean msg where
-  bodify v = [Text $ show v]
-
 text :: forall v msg. Present v => v -> View msg
 text val = do
   xs <- getBuilder
@@ -134,853 +118,433 @@ empty :: forall msg. View msg
 empty = mempty
 
 mkTagFn ::
-  forall body msg.
-  BodyAble body msg =>
+  forall msg.
   String ->
   Array (Attribute msg) ->
-  body ->
+  View msg ->
   View msg
 mkTagFn n attrs m = do
   xs <- getBuilder
-  let tag = Tag n attrs (bodify m)
+  let tag = Tag n attrs (runBuilder m)
   putBuilder (cons tag xs)
 
-a ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+a :: forall msg. Array (Attribute msg) -> View msg -> View msg
 a = mkTagFn "a"
 
-abbr ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+abbr :: forall msg. Array (Attribute msg) -> View msg -> View msg
 abbr = mkTagFn "abbr"
 
-address ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+address :: forall msg. Array (Attribute msg) -> View msg -> View msg
 address = mkTagFn "address"
 
-area ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+area :: forall msg. Array (Attribute msg) -> View msg -> View msg
 area = mkTagFn "area"
 
-article ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+article :: forall msg. Array (Attribute msg) -> View msg -> View msg
 article = mkTagFn "article"
 
-aside ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+aside :: forall msg. Array (Attribute msg) -> View msg -> View msg
 aside = mkTagFn "aside"
 
-audio ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+audio :: forall msg. Array (Attribute msg) -> View msg -> View msg
 audio = mkTagFn "audio"
 
-b ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+b :: forall msg. Array (Attribute msg) -> View msg -> View msg
 b = mkTagFn "b"
 
-bdi ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+bdi :: forall msg. Array (Attribute msg) -> View msg -> View msg
 bdi = mkTagFn "bdi"
 
-bdo ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+bdo :: forall msg. Array (Attribute msg) -> View msg -> View msg
 bdo = mkTagFn "bdo"
 
-big ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+big :: forall msg. Array (Attribute msg) -> View msg -> View msg
 big = mkTagFn "big"
 
-blockquote ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+blockquote :: forall msg. Array (Attribute msg) -> View msg -> View msg
 blockquote = mkTagFn "blockquote"
 
-br ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+br :: forall msg. Array (Attribute msg) -> View msg -> View msg
 br = mkTagFn "br"
 
-button ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+button :: forall msg. Array (Attribute msg) -> View msg -> View msg
 button = mkTagFn "button"
 
-canvas ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+canvas :: forall msg. Array (Attribute msg) -> View msg -> View msg
 canvas = mkTagFn "canvas"
 
-caption ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+caption :: forall msg. Array (Attribute msg) -> View msg -> View msg
 caption = mkTagFn "caption"
 
-center ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+center :: forall msg. Array (Attribute msg) -> View msg -> View msg
 center = mkTagFn "center"
 
-cite ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+cite :: forall msg. Array (Attribute msg) -> View msg -> View msg
 cite = mkTagFn "cite"
 
-code ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+code :: forall msg. Array (Attribute msg) -> View msg -> View msg
 code = mkTagFn "code"
 
-col ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+col :: forall msg. Array (Attribute msg) -> View msg -> View msg
 col = mkTagFn "col"
 
-colgroup ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+colgroup :: forall msg. Array (Attribute msg) -> View msg -> View msg
 colgroup = mkTagFn "colgroup"
 
-data_ ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+data_ :: forall msg. Array (Attribute msg) -> View msg -> View msg
 data_ = mkTagFn "data"
 
-datalist ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+datalist :: forall msg. Array (Attribute msg) -> View msg -> View msg
 datalist = mkTagFn "datalist"
 
-dd ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+dd :: forall msg. Array (Attribute msg) -> View msg -> View msg
 dd = mkTagFn "dd"
 
-del ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+del :: forall msg. Array (Attribute msg) -> View msg -> View msg
 del = mkTagFn "del"
 
-details ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+details :: forall msg. Array (Attribute msg) -> View msg -> View msg
 details = mkTagFn "details"
 
-dfn ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+dfn :: forall msg. Array (Attribute msg) -> View msg -> View msg
 dfn = mkTagFn "dfn"
 
-dialog ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+dialog :: forall msg. Array (Attribute msg) -> View msg -> View msg
 dialog = mkTagFn "dialog"
 
-dir ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+dir :: forall msg. Array (Attribute msg) -> View msg -> View msg
 dir = mkTagFn "dir"
 
-div ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+div :: forall msg. Array (Attribute msg) -> View msg -> View msg
 div = mkTagFn "div"
 
-dl ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+dl :: forall msg. Array (Attribute msg) -> View msg -> View msg
 dl = mkTagFn "dl"
 
-dt ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+dt :: forall msg. Array (Attribute msg) -> View msg -> View msg
 dt = mkTagFn "dt"
 
-em ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+em :: forall msg. Array (Attribute msg) -> View msg -> View msg
 em = mkTagFn "em"
 
-fieldset ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+fieldset :: forall msg. Array (Attribute msg) -> View msg -> View msg
 fieldset = mkTagFn "fieldset"
 
-figcaption ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+figcaption :: forall msg. Array (Attribute msg) -> View msg -> View msg
 figcaption = mkTagFn "figcaption"
 
-figure ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+figure :: forall msg. Array (Attribute msg) -> View msg -> View msg
 figure = mkTagFn "figure"
 
-font ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+font :: forall msg. Array (Attribute msg) -> View msg -> View msg
 font = mkTagFn "font"
 
-footer ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+footer :: forall msg. Array (Attribute msg) -> View msg -> View msg
 footer = mkTagFn "footer"
 
-form ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+form :: forall msg. Array (Attribute msg) -> View msg -> View msg
 form = mkTagFn "form"
 
-h1 ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+h1 :: forall msg. Array (Attribute msg) -> View msg -> View msg
 h1 = mkTagFn "h1"
 
-h2 ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+h2 :: forall msg. Array (Attribute msg) -> View msg -> View msg
 h2 = mkTagFn "h2"
 
-h3 ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+h3 :: forall msg. Array (Attribute msg) -> View msg -> View msg
 h3 = mkTagFn "h3"
 
-h4 ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+h4 :: forall msg. Array (Attribute msg) -> View msg -> View msg
 h4 = mkTagFn "h4"
 
-h5 ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+h5 :: forall msg. Array (Attribute msg) -> View msg -> View msg
 h5 = mkTagFn "h5"
 
-h6 ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+h6 :: forall msg. Array (Attribute msg) -> View msg -> View msg
 h6 = mkTagFn "h6"
 
-header ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+header :: forall msg. Array (Attribute msg) -> View msg -> View msg
 header = mkTagFn "header"
 
-hr ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+hr :: forall msg. Array (Attribute msg) -> View msg -> View msg
 hr = mkTagFn "hr"
 
-i ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+i :: forall msg. Array (Attribute msg) -> View msg -> View msg
 i = mkTagFn "i"
 
-img ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+img :: forall msg. Array (Attribute msg) -> View msg -> View msg
 img = mkTagFn "img"
 
-input ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+input :: forall msg. Array (Attribute msg) -> View msg -> View msg
 input = mkTagFn "input"
 
-ins ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+ins :: forall msg. Array (Attribute msg) -> View msg -> View msg
 ins = mkTagFn "ins"
 
-kbd ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+kbd :: forall msg. Array (Attribute msg) -> View msg -> View msg
 kbd = mkTagFn "kbd"
 
-label ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+label :: forall msg. Array (Attribute msg) -> View msg -> View msg
 label = mkTagFn "label"
 
-legend ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+legend :: forall msg. Array (Attribute msg) -> View msg -> View msg
 legend = mkTagFn "legend"
 
-li ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+li :: forall msg. Array (Attribute msg) -> View msg -> View msg
 li = mkTagFn "li"
 
-link ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+link :: forall msg. Array (Attribute msg) -> View msg -> View msg
 link = mkTagFn "link"
 
-main ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+main :: forall msg. Array (Attribute msg) -> View msg -> View msg
 main = mkTagFn "main"
 
-map_ ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+map_ :: forall msg. Array (Attribute msg) -> View msg -> View msg
 map_ = mkTagFn "map"
 
-mark ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+mark :: forall msg. Array (Attribute msg) -> View msg -> View msg
 mark = mkTagFn "mark"
 
-menu ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+menu :: forall msg. Array (Attribute msg) -> View msg -> View msg
 menu = mkTagFn "menu"
 
-menuitem ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+menuitem :: forall msg. Array (Attribute msg) -> View msg -> View msg
 menuitem = mkTagFn "menuitem"
 
-meter ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+meter :: forall msg. Array (Attribute msg) -> View msg -> View msg
 meter = mkTagFn "meter"
 
-nav ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+nav :: forall msg. Array (Attribute msg) -> View msg -> View msg
 nav = mkTagFn "nav"
 
-ol ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+ol :: forall msg. Array (Attribute msg) -> View msg -> View msg
 ol = mkTagFn "ol"
 
-optgroup ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+optgroup :: forall msg. Array (Attribute msg) -> View msg -> View msg
 optgroup = mkTagFn "optgroup"
 
-option ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+option :: forall msg. Array (Attribute msg) -> View msg -> View msg
 option = mkTagFn "option"
 
-output ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+output :: forall msg. Array (Attribute msg) -> View msg -> View msg
 output = mkTagFn "output"
 
-p ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+p :: forall msg. Array (Attribute msg) -> View msg -> View msg
 p = mkTagFn "p"
 
-picture ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+picture :: forall msg. Array (Attribute msg) -> View msg -> View msg
 picture = mkTagFn "picture"
 
-pre ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+pre :: forall msg. Array (Attribute msg) -> View msg -> View msg
 pre = mkTagFn "pre"
 
-progress ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+progress :: forall msg. Array (Attribute msg) -> View msg -> View msg
 progress = mkTagFn "progress"
 
-q ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+q :: forall msg. Array (Attribute msg) -> View msg -> View msg
 q = mkTagFn "q"
 
-rp ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+rp :: forall msg. Array (Attribute msg) -> View msg -> View msg
 rp = mkTagFn "rp"
 
-rt ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+rt :: forall msg. Array (Attribute msg) -> View msg -> View msg
 rt = mkTagFn "rt"
 
-ruby ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+ruby :: forall msg. Array (Attribute msg) -> View msg -> View msg
 ruby = mkTagFn "ruby"
 
-s ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+s :: forall msg. Array (Attribute msg) -> View msg -> View msg
 s = mkTagFn "s"
 
-samp ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+samp :: forall msg. Array (Attribute msg) -> View msg -> View msg
 samp = mkTagFn "samp"
 
-section ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+section :: forall msg. Array (Attribute msg) -> View msg -> View msg
 section = mkTagFn "section"
 
-select ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+select :: forall msg. Array (Attribute msg) -> View msg -> View msg
 select = mkTagFn "select"
 
-small ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+small :: forall msg. Array (Attribute msg) -> View msg -> View msg
 small = mkTagFn "small"
 
-source ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+source :: forall msg. Array (Attribute msg) -> View msg -> View msg
 source = mkTagFn "source"
 
-span ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+span :: forall msg. Array (Attribute msg) -> View msg -> View msg
 span = mkTagFn "span"
 
-strike ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+strike :: forall msg. Array (Attribute msg) -> View msg -> View msg
 strike = mkTagFn "strike"
 
-strong ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+strong :: forall msg. Array (Attribute msg) -> View msg -> View msg
 strong = mkTagFn "strong"
 
-sub ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+sub :: forall msg. Array (Attribute msg) -> View msg -> View msg
 sub = mkTagFn "sub"
 
-summary ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+summary :: forall msg. Array (Attribute msg) -> View msg -> View msg
 summary = mkTagFn "summary"
 
-sup ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+sup :: forall msg. Array (Attribute msg) -> View msg -> View msg
 sup = mkTagFn "sup"
 
-svg ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+svg :: forall msg. Array (Attribute msg) -> View msg -> View msg
 svg = mkTagFn "svg"
 
-table ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+table :: forall msg. Array (Attribute msg) -> View msg -> View msg
 table = mkTagFn "table"
 
-tbody ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+tbody :: forall msg. Array (Attribute msg) -> View msg -> View msg
 tbody = mkTagFn "tbody"
 
-td ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+td :: forall msg. Array (Attribute msg) -> View msg -> View msg
 td = mkTagFn "td"
 
-template ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+template :: forall msg. Array (Attribute msg) -> View msg -> View msg
 template = mkTagFn "template"
 
-textarea ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+textarea :: forall msg. Array (Attribute msg) -> View msg -> View msg
 textarea = mkTagFn "textarea"
 
-tfoot ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+tfoot :: forall msg. Array (Attribute msg) -> View msg -> View msg
 tfoot = mkTagFn "tfoot"
 
-th ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+th :: forall msg. Array (Attribute msg) -> View msg -> View msg
 th = mkTagFn "th"
 
-thead ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+thead :: forall msg. Array (Attribute msg) -> View msg -> View msg
 thead = mkTagFn "thead"
 
-time ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+time :: forall msg. Array (Attribute msg) -> View msg -> View msg
 time = mkTagFn "time"
 
-tr ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+tr :: forall msg. Array (Attribute msg) -> View msg -> View msg
 tr = mkTagFn "tr"
 
-track ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+track :: forall msg. Array (Attribute msg) -> View msg -> View msg
 track = mkTagFn "track"
 
-tt ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+tt :: forall msg. Array (Attribute msg) -> View msg -> View msg
 tt = mkTagFn "tt"
 
-u ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+u :: forall msg. Array (Attribute msg) -> View msg -> View msg
 u = mkTagFn "u"
 
-ul ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+ul :: forall msg. Array (Attribute msg) -> View msg -> View msg
 ul = mkTagFn "ul"
 
-var ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+var :: forall msg. Array (Attribute msg) -> View msg -> View msg
 var = mkTagFn "var"
 
-video ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+video :: forall msg. Array (Attribute msg) -> View msg -> View msg
 video = mkTagFn "video"
 
-wbr ::
-  forall body msg.
-  BodyAble body msg =>
-  Array (Attribute msg) ->
-  body ->
-  View msg
+
+wbr :: forall msg. Array (Attribute msg) -> View msg -> View msg
 wbr = mkTagFn "wbr"
+

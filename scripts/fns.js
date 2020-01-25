@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 const template = (tag) => `
-${tag} :: forall body msg. BodyAble body msg => Array (Attribute msg) -> body -> View msg
+${tag} :: forall msg. Array (Attribute msg) -> View msg -> View msg
 ${tag} = mkTagFn "${tag.replace('_', '')}"
 `;
 
