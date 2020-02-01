@@ -29,7 +29,7 @@ data Msg
   = Inc
   | Dec
 
-view :: Model -> Html Msg
+view :: Model -> View Msg
 view model = div [] do
     button [onClick Inc] do
       text "+"
