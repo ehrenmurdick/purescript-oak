@@ -12,6 +12,7 @@ module Oak
 
 import Oak.Html
 
+import Control.Monad.State (execState)
 import Data.Either
   ( Either(..)
   , choose
@@ -28,7 +29,13 @@ import Data.Maybe (Maybe(..), fromJust)
 import Data.Monoid (mempty)
 import Effect (Effect)
 import Effect.Ref (Ref, new, read, write) as Ref
-import Oak.Document (Element, Node, appendChildNode, getElementById, onDocumentReady)
+import Oak.Document
+  ( Element
+  , Node
+  , appendChildNode
+  , getElementById
+  , onDocumentReady
+  )
 import Oak.Html.Events
   ( onAbort
   , onAfterprint
@@ -181,7 +188,7 @@ handler ref runningApp msg = do
   let oldTree = env.tree
   let root = env.root
   let newModel = app.update msg env.model
-  newTree <- render (handler ref runningApp) (runBuilder (app.view newModel))
+  newTree <- render (handler ref runningApp) (execState (app.view newModel) [])
   newRoot <- patch newTree oldTree env.root
   let newRuntime = { root: newRoot
                    , tree: newTree
@@ -199,7 +206,7 @@ runApp_ (App app) msg = do
                    }
   let initialModel = app.init
   ref <- Ref.new { tree: [], root: [], model: initialModel }
-  tree <- render (handler ref (RunningApp runningApp)) (runBuilder (runningApp.view initialModel))
+  tree <- render (handler ref (RunningApp runningApp)) (execState (runningApp.view initialModel) [])
   let rootNode = (N.createRootNode tree)
   _ <- Ref.write { tree, root: rootNode, model: initialModel } ref
   case msg of

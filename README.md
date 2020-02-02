@@ -21,6 +21,7 @@ module Main (main) where
 import Oak
 
 import Prelude hiding (div)
+import Effect
 
 type Model
   = {number :: Int}
