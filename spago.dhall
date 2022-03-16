@@ -14,4 +14,6 @@
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
+, license = "MIT"
+, repository = "https://github.com/ehrenmurdick/purescript-oak"
 }
