@@ -1,0 +1,29 @@
+{
+    "name": "purescript-purescript-oak",
+    "license": [
+        "MIT"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ehrenmurdick/purescript-oak"
+    },
+    "ignore": [
+        "**/.*",
+        "node_modules",
+        "bower_components",
+        "output"
+    ],
+    "dependencies": {
+        "purescript-arrays": "^v6.0.1",
+        "purescript-console": "^v5.0.0",
+        "purescript-effect": "^v3.0.0",
+        "purescript-either": "^v5.0.0",
+        "purescript-foldable-traversable": "^v5.0.1",
+        "purescript-functions": "^v5.0.0",
+        "purescript-maybe": "^v5.0.0",
+        "purescript-prelude": "^v5.0.1",
+        "purescript-refs": "^v5.0.0",
+        "purescript-transformers": "^v5.2.0",
+        "purescript-tuples": "^v6.0.1"
+    }
+}
