@@ -11,17 +11,12 @@ import Prelude (map, ($), (<>))
 
 import Oak.VirtualDom.Native as N
 
-render ::
-  forall msg r.
-  (msg -> Effect r) ->
-  Array (Html msg) ->
-  Effect (Array N.Tree)
-render h xs = sequence (map (renderTag h) xs)
+render :: forall msg r. (msg -> Effect r) -> Html msg -> Effect N.Tree
+render h xs = renderTag h xs
 
 renderTag :: forall msg r. (msg -> Effect r) -> Html msg -> Effect N.Tree
 renderTag h (Tag name attrs children) = let rendered = sequence $ map (renderTag h) children
-                                            foo = rendered
-                                        in N.render name (combineAttrs attrs h) foo
+                                        in N.render name (combineAttrs attrs h) rendered
 
 renderTag _ (Text str) = N.text str
 
@@ -61,5 +56,5 @@ combineAttrs ::
   N.NativeAttrs
 combineAttrs attrs handler = foldr (concatAttr handler) N.emptyAttrs attrs
 
-patch :: Array N.Tree -> Array N.Tree -> Array Node -> Effect (Array Node)
+patch :: N.Tree -> N.Tree -> Node -> Effect Node
 patch oldTree newTree root = N.patch oldTree newTree root

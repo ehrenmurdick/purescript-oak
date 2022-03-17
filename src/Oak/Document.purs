@@ -1,4 +1,10 @@
-module Oak.Document (Element, Node, onDocumentReady, appendChildNode, getElementById) where
+module Oak.Document
+  ( Element
+  , Node
+  , appendChildNode
+  , getElementById
+  , onDocumentReady
+  ) where
 
 import Data.Function.Uncurried (Fn1, runFn1)
 import Effect (Effect)
@@ -12,9 +18,9 @@ foreign import getElementByIdImpl :: Fn1 String (Effect Element)
 
 foreign import onDocumentReadyImpl :: Fn1 (Effect Unit) (Effect Unit)
 
-foreign import appendChildNodeImpl :: Element -> (Array Node) -> Effect Unit
+foreign import appendChildNodeImpl :: Element -> Node -> Effect Unit
 
-appendChildNode :: Element -> Array Node -> Effect Unit
+appendChildNode :: Element -> Node -> Effect Unit
 appendChildNode element rootNode = appendChildNodeImpl element rootNode
 
 getElementById :: String -> Effect Element

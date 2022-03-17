@@ -12,7 +12,6 @@ module Oak
 
 import Oak.Html
 
-import Control.Monad.State (execState)
 import Data.Either
   ( Either(..)
   , choose
@@ -109,6 +108,7 @@ import Oak.Html.Events
   , onWheel
   )
 import Oak.VirtualDom (patch, render)
+import Partial.Unsafe (unsafePartial)
 import Prelude (bind, discard, pure, Unit, unit)
 
 import Oak.VirtualDom.Native as N
@@ -169,12 +169,12 @@ runApp ::
   forall msg model.
   App msg model ->
   Maybe msg ->
-  Effect (Array Node)
+  Effect Node
 runApp msg app = do
   runApp_ msg app
 
 type Runtime m
-  = {tree :: Array N.Tree, root :: Array Node, model :: m}
+  = {tree :: Maybe N.Tree, root :: Maybe Node, model :: m}
 
 handler ::
   forall msg model.
@@ -185,29 +185,30 @@ handler ::
 handler ref runningApp msg = do
   env <- Ref.read ref
   let (RunningApp app) = runningApp
-  let oldTree = env.tree
+  let oldTree = unsafePartial (fromJust env.tree)
+  let oldRoot = unsafePartial (fromJust env.root)
   let newModel = app.update msg env.model
-  newTree <- render (handler ref runningApp) (execState (app.view newModel) [])
-  newRoot <- patch newTree oldTree env.root
-  let newRuntime = { root: newRoot
-                   , tree: newTree
+  newTree <- render (handler ref runningApp) (app.view newModel)
+  newRoot <- patch newTree oldTree oldRoot
+  let newRuntime = { root: Just newRoot
+                   , tree: Just newTree
                    , model: newModel
                    }
   Ref.write newRuntime ref
   app.next msg newModel (handler ref runningApp)
   mempty
 
-runApp_ :: forall msg model. App msg model -> Maybe msg -> Effect (Array Node)
+runApp_ :: forall msg model. App msg model -> Maybe msg -> Effect Node
 runApp_ (App app) msg = do
   let runningApp = { view: app.view
                    , next: app.next
                    , update: app.update
                    }
   let initialModel = app.init
-  ref <- Ref.new { tree: [], root: [], model: initialModel }
-  tree <- render (handler ref (RunningApp runningApp)) (execState (runningApp.view initialModel) [])
+  ref <- Ref.new { tree: Nothing, root: Nothing, model: initialModel }
+  tree <- render (handler ref (RunningApp runningApp)) (runningApp.view initialModel)
   let rootNode = (N.createRootNode tree)
-  _ <- Ref.write { tree, root: rootNode, model: initialModel } ref
+  _ <- Ref.write { tree: Just tree, root: Just rootNode, model: initialModel } ref
   case msg of
     (Just m) -> handler ref (RunningApp runningApp) m
     Nothing -> pure unit

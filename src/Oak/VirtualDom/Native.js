@@ -5,12 +5,11 @@ var createElement = require("virtual-dom/create-element");
 
 // foreign import createRootNodeImpl :: ∀ e.
 //   Fn1 Tree (Eff ( createRootNode :: NODE | e ) Node)
-exports.createRootNodeImpl = function(trees) {
-  var newtrees = [];
-  for (var i in trees) {
-    newtrees[i] = createElement(trees[i]);
-  }
-  return newtrees;
+exports.createRootNodeImpl = function(tree) {
+  console.log("tree", tree)
+  const el = createElement(tree);
+  console.log("el", el)
+  return el
 };
 
 // foreign import textImpl :: ∀ e.
@@ -35,16 +34,11 @@ exports.renderImpl = function(tagName, attrs, childrenEff) {
 };
 
 // foreign import patchImpl :: ∀ e h.
-//   Fn3 (Array Tree) (Array Tree) (Array Node) Effect (Array Node)
-exports.patchImpl = function(newTrees, oldTrees, rootNodes) {
+//   Fn3 Tree Tree Node (Effect Node)
+exports.patchImpl = function(newTree, oldTree, rootNode) {
   return function() {
-    var result = [];
-    for(var i in newTrees) {
-      var patches = diff(oldTrees[i], newTrees[i]);
-      var newRoot = patch(rootNodes[i], patches);
-      result.push(newRoot);
-    }
-    return result;
+    var patches = diff(oldTree, newTree);
+    return patch(rootNode, patches);
   };
 };
 

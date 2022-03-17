@@ -10,11 +10,11 @@ exports.getElementByIdImpl = function (id) {
 };
 
 exports.appendChildNodeImpl = function (container) {
-  return function (rootNodes) {
+  return function (rootNode) {
     return function () {
-      for (var i in rootNodes) {
-        container.appendChild(rootNodes[i]);
-      }
+      console.log("container", container)
+      console.log("rootNode", rootNode)
+      container.appendChild(rootNode);
     };
   };
 };
