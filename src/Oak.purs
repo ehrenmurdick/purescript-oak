@@ -131,14 +131,14 @@ data RunningApp msg model
 -- | `view`:
 -- |
 -- |
--- | Maps the current model to an html view.
+-- | Maps the current model to a view.
 -- |
 -- | `next`:
 -- |
--- | This function maps a message and model to a command. For example,
--- | for sending an Http request when a user clicks a button.
--- | `next` would be called with the button click message and would
--- | return an `Oak.Cmd` that will execute the request.
+-- | This function takes a message and model and returns a command. For example,
+-- | for sending an Http request when a user clicks a button. `next` would be
+-- | called with the button click message and would return an `Oak.Cmd` that
+-- | will execute the request.
 -- |
 -- |
 -- | `update`:
@@ -186,7 +186,6 @@ handler ref runningApp msg = do
   env <- Ref.read ref
   let (RunningApp app) = runningApp
   let oldTree = env.tree
-  let root = env.root
   let newModel = app.update msg env.model
   newTree <- render (handler ref runningApp) (execState (app.view newModel) [])
   newRoot <- patch newTree oldTree env.root

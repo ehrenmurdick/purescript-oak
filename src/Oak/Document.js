@@ -1,5 +1,5 @@
-exports.getElementByIdImpl = function(id) {
-  return function() {
+exports.getElementByIdImpl = function (id) {
+  return function () {
     var container = document.getElementById(id);
     if (container == null) {
       throw new Error("Unable to find element with ID: " + id);
@@ -9,9 +9,9 @@ exports.getElementByIdImpl = function(id) {
   };
 };
 
-exports.appendChildNodeImpl = function(container) {
-  return function(rootNodes) {
-    return function() {
+exports.appendChildNodeImpl = function (container) {
+  return function (rootNodes) {
+    return function () {
       for (var i in rootNodes) {
         container.appendChild(rootNodes[i]);
       }
@@ -19,8 +19,8 @@ exports.appendChildNodeImpl = function(container) {
   };
 };
 
-exports.onDocumentReadyImpl = function(eff) {
-  return function() {
+exports.onDocumentReadyImpl = function (eff) {
+  return function () {
     document.addEventListener("DOMContentLoaded", eff);
-  }
+  };
 };

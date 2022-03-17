@@ -23,7 +23,7 @@ renderTag h (Tag name attrs children) = let rendered = sequence $ map (renderTag
                                             foo = rendered
                                         in N.render name (combineAttrs attrs h) foo
 
-renderTag h (Text str) = N.text str
+renderTag _ (Text str) = N.text str
 
 concatAttr ::
   forall msg eff.
@@ -37,13 +37,13 @@ concatAttr handler (EventHandler name msg) attrs = N.concatHandlerFun name (\_ -
 concatAttr handler (StringEventHandler name f) attrs = N.concatEventTargetValueHandlerFun name (\e ->
   handler (f e)) attrs
 
-concatAttr handler (SimpleAttribute name value) attrs = N.concatSimpleAttr name value attrs
+concatAttr _ (SimpleAttribute name value) attrs = N.concatSimpleAttr name value attrs
 
-concatAttr handler (Style styles) attrs = N.concatSimpleAttr "style" (stringifyStyles styles) attrs
+concatAttr _ (Style styles) attrs = N.concatSimpleAttr "style" (stringifyStyles styles) attrs
 
-concatAttr handler (BooleanAttribute name b) attrs = N.concatBooleanAttr name b attrs
+concatAttr _ (BooleanAttribute name b) attrs = N.concatBooleanAttr name b attrs
 
-concatAttr handler (DataAttribute name val) attrs = N.concatDataAttr name val attrs
+concatAttr _ (DataAttribute name val) attrs = N.concatDataAttr name val attrs
 
 concatAttr handler (KeyPressEventHandler name f) attrs = N.concatHandlerFun name (\e ->
   handler (f e)) attrs
