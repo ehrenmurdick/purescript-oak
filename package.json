@@ -1,0 +1,25 @@
+{
+  "name": "purescript-oak",
+  "version": "1.0.0",
+  "description": "Oak is an implementation of the Elm architecture in Purescript.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ehrenmurdick/purescript-oak.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ehrenmurdick/purescript-oak/issues"
+  },
+  "homepage": "https://github.com/ehrenmurdick/purescript-oak#readme",
+  "devDependencies": {
+    "eslint": "^8.41.0"
+  }
+}

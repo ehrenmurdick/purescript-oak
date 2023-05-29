@@ -1,4 +1,4 @@
-exports.getElementByIdImpl = function (id) {
+export function getElementByIdImpl(id) {
   return function () {
     var container = document.getElementById(id);
     if (container == null) {
@@ -7,20 +7,20 @@ exports.getElementByIdImpl = function (id) {
 
     return container;
   };
-};
+}
 
-exports.appendChildNodeImpl = function (container) {
+export function appendChildNodeImpl(container) {
   return function (rootNode) {
     return function () {
-      console.log("container", container)
-      console.log("rootNode", rootNode)
+      console.log("container", container);
+      console.log("rootNode", rootNode);
       container.appendChild(rootNode);
     };
   };
-};
+}
 
-exports.onDocumentReadyImpl = function (eff) {
+export function onDocumentReadyImpl(eff) {
   return function () {
     document.addEventListener("DOMContentLoaded", eff);
   };
-};
+}

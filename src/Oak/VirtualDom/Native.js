@@ -1,24 +1,24 @@
-var h = require("virtual-dom/h");
-var diff = require("virtual-dom/diff");
-var patch = require("virtual-dom/patch");
-var createElement = require("virtual-dom/create-element");
+let h = require("virtual-dom/h");
+let diff = require("virtual-dom/diff");
+let patch = require("virtual-dom/patch");
+let createElement = require("virtual-dom/create-element");
 
 // foreign import createRootNodeImpl :: ∀ e.
 //   Fn1 Tree (Eff ( createRootNode :: NODE | e ) Node)
-exports.createRootNodeImpl = function(tree) {
-  console.log("tree", tree)
+export function createRootNodeImpl(tree) {
+  console.log("tree", tree);
   const el = createElement(tree);
-  console.log("el", el)
-  return el
-};
+  console.log("el", el);
+  return el;
+}
 
 // foreign import textImpl :: ∀ e.
 //   Fn1 String (Eff e Tree)
-exports.textImpl = function(str) {
-  return function() {
+export function textImpl(str) {
+  return function () {
     return str;
   };
-};
+}
 
 // foreign import renderImpl :: ∀ msg h e model.
 //   Fn3
@@ -26,57 +26,53 @@ exports.textImpl = function(str) {
 //     NativeAttrs
 //     ( Effect (Array Tree) )
 //     ( Effect Tree )
-exports.renderImpl = function(tagName, attrs, childrenEff) {
-  return function() {
+export function renderImpl(tagName, attrs, childrenEff) {
+  return function () {
     var children = childrenEff();
     return h(tagName, attrs, children);
   };
-};
+}
 
 // foreign import patchImpl :: ∀ e h.
 //   Fn3 Tree Tree Node (Effect Node)
-exports.patchImpl = function(newTree, oldTree, rootNode) {
-  return function() {
+export function patchImpl(newTree, oldTree, rootNode) {
+  return function () {
     var patches = diff(oldTree, newTree);
     return patch(rootNode, patches);
   };
-};
+}
 
 // foreign import concatHandlerFunImpl :: ∀ eff event.
 //   Fn3 String (event -> eff) NativeAttrs NativeAttrs
-exports.concatHandlerFunImpl = function(name, msgHandler, rest) {
+export function concatHandlerFunImpl(name, msgHandler, rest) {
   var result = Object.assign({}, rest);
-  result[name] = function(event) {
+  result[name] = function (event) {
     msgHandler(event)();
   };
   return result;
-};
+}
 
 // foreign import concatEventTargetValueHandlerFunImpl :: ∀ eff event.
 //   Fn3 String (event -> eff) NativeAttrs NativeAttrs
-exports.concatEventTargetValueHandlerFunImpl = function(
-  name,
-  msgHandler,
-  rest
-) {
+export function concatEventTargetValueHandlerFunImpl(name, msgHandler, rest) {
   var result = Object.assign({}, rest);
-  result[name] = function(event) {
+  result[name] = function (event) {
     msgHandler(String(event.target.value))();
   };
   return result;
-};
+}
 
 // foreign import concatSimpleAttrImpl :: ∀ eff event.
 //   Fn3 String String NativeAttrs NativeAttrs
-exports.concatSimpleAttrImpl = function(name, value, rest) {
+export function concatSimpleAttrImpl(name, value, rest) {
   var result = Object.assign({}, rest);
   result[name] = value;
   return result;
-};
+}
 
 // foreign import concatBooleanAttrImpl ::
 //   Fn3 String Boolean NativeAttrs NativeAttrs
-exports.concatBooleanAttrImpl = function(name, b, rest) {
+export function concatBooleanAttrImpl(name, b, rest) {
   if (b) {
     var result = Object.assign({}, rest);
     result[name] = name;
@@ -84,19 +80,19 @@ exports.concatBooleanAttrImpl = function(name, b, rest) {
   } else {
     return rest;
   }
-};
+}
 
 // foreign import concatDataAttrImpl ::
 //   Fn3 String String NativeAttrs NativeAttrs
-exports.concatDataAttrImpl = function(name, val, rest) {
+export function concatDataAttrImpl(name, val, rest) {
   var result = Object.assign({}, rest);
   var attributes = Object.assign({}, rest.attributes);
   attributes[name] = val;
   result.attributes = attributes;
   return result;
-};
+}
 
 // foreign import emptyAttrs :: NativeAttrs
-exports.emptyAttrs = function() {
+export function emptyAttrs() {
   return {};
-};
+}
