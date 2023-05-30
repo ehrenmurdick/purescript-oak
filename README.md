@@ -12,7 +12,6 @@ npm install virtual-dom
 
 Documentation is published on [pursuit](https://pursuit.purescript.org/packages/purescript-oak/).
 
-
 A breif example Oak app:
 
 ```
@@ -23,21 +22,23 @@ import Oak
 import Prelude hiding (div)
 import Effect
 
-type Model
-  = {number :: Int}
+type Model = { number :: Int }
 
 data Msg
   = Inc
   | Dec
 
-view :: Model -> View Msg
-view model = div [] do
-    button [onClick Inc] do
-      text "+"
-    div [] do
-      text model.number
-    button [onClick Dec] do
-      text "-"
+view :: Model -> Html Msg
+view model = div []
+  [ div []
+      [ button [ onClick Inc ] [ text "+" ]
+      , text $ show model.number
+      ]
+  , div []
+      [ button [ onClick Dec ] [ text "-" ]
+      , text $ show model.number
+      ]
+  ]
 
 next :: Msg -> Model -> (Msg -> Effect Unit) -> Effect Unit
 next msg mod h = mempty

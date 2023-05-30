@@ -3,7 +3,6 @@ module Oak.Html where
 import Data.Array (cons, reverse)
 import Data.Tuple (Tuple(..))
 import Oak.Html.Attribute (Attribute)
-import Oak.Html.Present (present, class Present)
 import Prelude (class Functor, Unit, bind, join, map, ($))
 
 data Html msg
@@ -23,8 +22,8 @@ instance htmlFunctor :: Functor Html where
     Text str -> Text str
     Tag name attrs children -> Tag name (map (map func) attrs) (map (map func) children)
 
-text :: forall v msg. Present v => v -> View msg
-text val = Text (present val)
+text :: forall msg. String -> View msg
+text val = Text val
 
 empty :: forall msg. View msg
 empty = text ""

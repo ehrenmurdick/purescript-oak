@@ -10,7 +10,6 @@
   , "partial"
   , "prelude"
   , "refs"
-  , "transformers"
   , "tuples"
   ]
 , packages = ./packages.dhall
