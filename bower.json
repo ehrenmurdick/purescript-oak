@@ -14,16 +14,16 @@
         "output"
     ],
     "dependencies": {
-        "purescript-arrays": "^v6.0.1",
-        "purescript-console": "^v5.0.0",
-        "purescript-effect": "^v3.0.0",
-        "purescript-either": "^v5.0.0",
-        "purescript-foldable-traversable": "^v5.0.1",
-        "purescript-functions": "^v5.0.0",
-        "purescript-maybe": "^v5.0.0",
-        "purescript-prelude": "^v5.0.1",
-        "purescript-refs": "^v5.0.0",
-        "purescript-transformers": "^v5.2.0",
-        "purescript-tuples": "^v6.0.1"
+        "purescript-arrays": "^v7.1.0",
+        "purescript-console": "^v6.0.0",
+        "purescript-effect": "^v4.0.0",
+        "purescript-either": "^v6.1.0",
+        "purescript-foldable-traversable": "^v6.0.0",
+        "purescript-functions": "^v6.0.0",
+        "purescript-maybe": "^v6.0.0",
+        "purescript-partial": "^v4.0.0",
+        "purescript-prelude": "^v6.0.1",
+        "purescript-refs": "^v6.0.0",
+        "purescript-tuples": "^v7.0.0"
     }
 }
