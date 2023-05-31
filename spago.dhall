@@ -1,4 +1,4 @@
-{ name = "purescript-oak"
+{ name = "oak"
 , dependencies =
   [ "console"
   , "effect"
