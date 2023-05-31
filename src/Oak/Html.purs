@@ -1,23 +1,20 @@
 module Oak.Html where
 
-import Data.Array (cons, reverse)
-import Data.Tuple (Tuple(..))
 import Oak.Html.Attribute (Attribute)
-import Prelude (class Functor, Unit, bind, join, map, ($))
+import Prelude (class Functor, map)
 
 data Html msg
   = Text String
   | Tag String (Array (Attribute msg)) (Array (Html msg))
 
-type View msg
-  = Html msg
+type View msg = Html msg
 
 instance htmlFunctor :: Functor Html where
-  map ::
-    forall msg1 msg2.
-    (msg1 -> msg2) ->
-    Html msg1 ->
-    Html msg2
+  map
+    :: forall msg1 msg2
+     . (msg1 -> msg2)
+    -> Html msg1
+    -> Html msg2
   map func html = case html of
     Text str -> Text str
     Tag name attrs children -> Tag name (map (map func) attrs) (map (map func) children)
@@ -28,12 +25,12 @@ text val = Text val
 empty :: forall msg. View msg
 empty = text ""
 
-mkTagFn ::
-  forall msg.
-  String ->
-  Array (Attribute msg) ->
-  Array (View msg) ->
-  View msg
+mkTagFn
+  :: forall msg
+   . String
+  -> Array (Attribute msg)
+  -> Array (View msg)
+  -> View msg
 mkTagFn n attrs m = Tag n attrs m
 
 a :: forall msg. Array (Attribute msg) -> Array (View msg) -> View msg

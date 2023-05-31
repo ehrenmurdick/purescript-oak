@@ -5,26 +5,24 @@ import Prelude
   , (>>>)
   )
 
-import Data.Functor ( class Functor )
+import Data.Functor (class Functor)
 
-import Oak.Css ( StyleAttribute )
-import Oak.Html.Present
+import Oak.Css (StyleAttribute)
 
 type KeyPressEvent =
-  { altKey      :: Boolean
-  , charCode    :: Int
-  , code        :: String
-  , ctrlKey     :: Boolean
+  { altKey :: Boolean
+  , charCode :: Int
+  , code :: String
+  , ctrlKey :: Boolean
   , isComposing :: Boolean
-  , key         :: String
-  , keyCode     :: Int
-  , location    :: Int
-  , metaKey     :: Boolean
-  , repeat      :: Boolean
-  , shiftKey    :: Boolean
-  , which       :: Boolean
+  , key :: String
+  , keyCode :: Int
+  , location :: Int
+  , metaKey :: Boolean
+  , repeat :: Boolean
+  , shiftKey :: Boolean
+  , which :: Boolean
   }
-
 
 data Attribute msg
   = BooleanAttribute String Boolean
@@ -47,8 +45,6 @@ instance attributeFunctor :: Functor Attribute where
       SimpleAttribute a b -> SimpleAttribute a b
       Style a -> Style a
 
-
-
 -- special attrs
 ----------------
 
@@ -56,9 +52,8 @@ style :: ∀ msg. Array StyleAttribute -> Attribute msg
 style attrs = Style attrs
 
 -- data-*
-data_ :: ∀ msg v. Present v => String -> v -> Attribute msg
-data_ attrName val = DataAttribute ("data-" <> attrName) (present val)
-
+data_ :: ∀ msg. String -> String -> Attribute msg
+data_ attrName val = DataAttribute ("data-" <> attrName) val
 
 -- boolean attrs
 ----------------
@@ -66,388 +61,293 @@ data_ attrName val = DataAttribute ("data-" <> attrName) (present val)
 checked :: ∀ msg. Boolean -> Attribute msg
 checked b = BooleanAttribute "checked" b
 
-
 contenteditable :: ∀ msg. Boolean -> Attribute msg
 contenteditable b = BooleanAttribute "contenteditable" b
-
 
 disabled :: ∀ msg. Boolean -> Attribute msg
 disabled b = BooleanAttribute "disabled" b
 
-
 hidden :: ∀ msg. Boolean -> Attribute msg
 hidden b = BooleanAttribute "hidden" b
-
 
 -- regular string attributes
 ----------------------------
 
-accept :: ∀ msg v. Present v => v -> Attribute msg
-accept val = SimpleAttribute "accept" (present val)
+accept :: ∀ msg. String -> Attribute msg
+accept val = SimpleAttribute "accept" val
 
+acceptCharset :: ∀ msg. String -> Attribute msg
+acceptCharset val = SimpleAttribute "accept-charset" val
 
-acceptCharset :: ∀ msg v. Present v => v -> Attribute msg
-acceptCharset val = SimpleAttribute "accept-charset" (present val)
+accesskey :: ∀ msg. String -> Attribute msg
+accesskey val = SimpleAttribute "accesskey" val
 
+action :: ∀ msg. String -> Attribute msg
+action val = SimpleAttribute "action" val
 
-accesskey :: ∀ msg v. Present v => v -> Attribute msg
-accesskey val = SimpleAttribute "accesskey" (present val)
+align :: ∀ msg. String -> Attribute msg
+align val = SimpleAttribute "align" val
 
+alt :: ∀ msg. String -> Attribute msg
+alt val = SimpleAttribute "alt" val
 
-action :: ∀ msg v. Present v => v -> Attribute msg
-action val = SimpleAttribute "action" (present val)
+async :: ∀ msg. String -> Attribute msg
+async val = SimpleAttribute "async" val
 
+autocomplete :: ∀ msg. String -> Attribute msg
+autocomplete val = SimpleAttribute "autocomplete" val
 
-align :: ∀ msg v. Present v => v -> Attribute msg
-align val = SimpleAttribute "align" (present val)
+autofocus :: ∀ msg. String -> Attribute msg
+autofocus val = SimpleAttribute "autofocus" val
 
+autoplay :: ∀ msg. String -> Attribute msg
+autoplay val = SimpleAttribute "autoplay" val
 
-alt :: ∀ msg v. Present v => v -> Attribute msg
-alt val = SimpleAttribute "alt" (present val)
+bgcolor :: ∀ msg. String -> Attribute msg
+bgcolor val = SimpleAttribute "bgcolor" val
 
+border :: ∀ msg. String -> Attribute msg
+border val = SimpleAttribute "border" val
 
-async :: ∀ msg v. Present v => v -> Attribute msg
-async val = SimpleAttribute "async" (present val)
+charset :: ∀ msg. String -> Attribute msg
+charset val = SimpleAttribute "charset" val
 
+cite :: ∀ msg. String -> Attribute msg
+cite val = SimpleAttribute "cite" val
 
-autocomplete :: ∀ msg v. Present v => v -> Attribute msg
-autocomplete val = SimpleAttribute "autocomplete" (present val)
+className :: ∀ msg. String -> Attribute msg
+className val = SimpleAttribute "className" val
 
+color :: ∀ msg. String -> Attribute msg
+color val = SimpleAttribute "color" val
 
-autofocus :: ∀ msg v. Present v => v -> Attribute msg
-autofocus val = SimpleAttribute "autofocus" (present val)
+cols :: ∀ msg. String -> Attribute msg
+cols val = SimpleAttribute "cols" val
 
+colspan :: ∀ msg. String -> Attribute msg
+colspan val = SimpleAttribute "colspan" val
 
-autoplay :: ∀ msg v. Present v => v -> Attribute msg
-autoplay val = SimpleAttribute "autoplay" (present val)
+content :: ∀ msg. String -> Attribute msg
+content val = SimpleAttribute "content" val
 
-bgcolor :: ∀ msg v. Present v => v -> Attribute msg
-bgcolor val = SimpleAttribute "bgcolor" (present val)
+controls :: ∀ msg. String -> Attribute msg
+controls val = SimpleAttribute "controls" val
 
-
-border :: ∀ msg v. Present v => v -> Attribute msg
-border val = SimpleAttribute "border" (present val)
-
-
-charset :: ∀ msg v. Present v => v -> Attribute msg
-charset val = SimpleAttribute "charset" (present val)
-
-
-cite :: ∀ msg v. Present v => v -> Attribute msg
-cite val = SimpleAttribute "cite" (present val)
-
-
-className :: ∀ msg v. Present v => v -> Attribute msg
-className val = SimpleAttribute "className" (present val)
-
-
-color :: ∀ msg v. Present v => v -> Attribute msg
-color val = SimpleAttribute "color" (present val)
-
-
-cols :: ∀ msg v. Present v => v -> Attribute msg
-cols val = SimpleAttribute "cols" (present val)
-
-
-colspan :: ∀ msg v. Present v => v -> Attribute msg
-colspan val = SimpleAttribute "colspan" (present val)
-
-
-content :: ∀ msg v. Present v => v -> Attribute msg
-content val = SimpleAttribute "content" (present val)
-
-
-controls :: ∀ msg v. Present v => v -> Attribute msg
-controls val = SimpleAttribute "controls" (present val)
-
-
-coords :: ∀ msg v. Present v => v -> Attribute msg
-coords val = SimpleAttribute "coords" (present val)
-
+coords :: ∀ msg. String -> Attribute msg
+coords val = SimpleAttribute "coords" val
 
 -- using data_ for the more common data-* attr use case
 -- naming this data__ (note two underscores) for lack
 -- of a better idea. I'm open to suggestions
-data__ :: ∀ msg v. Present v => v -> Attribute msg
-data__ val = SimpleAttribute "data" (present val)
+data__ :: ∀ msg. String -> Attribute msg
+data__ val = SimpleAttribute "data" val
 
+datetime :: ∀ msg. String -> Attribute msg
+datetime val = SimpleAttribute "datetime" val
 
-datetime :: ∀ msg v. Present v => v -> Attribute msg
-datetime val = SimpleAttribute "datetime" (present val)
+default :: ∀ msg. String -> Attribute msg
+default val = SimpleAttribute "default" val
 
+defer :: ∀ msg. String -> Attribute msg
+defer val = SimpleAttribute "defer" val
 
-default :: ∀ msg v. Present v => v -> Attribute msg
-default val = SimpleAttribute "default" (present val)
+dir :: ∀ msg. String -> Attribute msg
+dir val = SimpleAttribute "dir" val
 
+dirname :: ∀ msg. String -> Attribute msg
+dirname val = SimpleAttribute "dirname" val
 
-defer :: ∀ msg v. Present v => v -> Attribute msg
-defer val = SimpleAttribute "defer" (present val)
+download :: ∀ msg. String -> Attribute msg
+download val = SimpleAttribute "download" val
 
+draggable :: ∀ msg. String -> Attribute msg
+draggable val = SimpleAttribute "draggable" val
 
-dir :: ∀ msg v. Present v => v -> Attribute msg
-dir val = SimpleAttribute "dir" (present val)
+dropzone :: ∀ msg. String -> Attribute msg
+dropzone val = SimpleAttribute "dropzone" val
 
+enctype :: ∀ msg. String -> Attribute msg
+enctype val = SimpleAttribute "enctype" val
 
-dirname :: ∀ msg v. Present v => v -> Attribute msg
-dirname val = SimpleAttribute "dirname" (present val)
+for :: ∀ msg. String -> Attribute msg
+for val = SimpleAttribute "for" val
 
+form :: ∀ msg. String -> Attribute msg
+form val = SimpleAttribute "form" val
 
-download :: ∀ msg v. Present v => v -> Attribute msg
-download val = SimpleAttribute "download" (present val)
+formaction :: ∀ msg. String -> Attribute msg
+formaction val = SimpleAttribute "formaction" val
 
+headers :: ∀ msg. String -> Attribute msg
+headers val = SimpleAttribute "headers" val
 
-draggable :: ∀ msg v. Present v => v -> Attribute msg
-draggable val = SimpleAttribute "draggable" (present val)
+height :: ∀ msg. String -> Attribute msg
+height val = SimpleAttribute "height" val
 
+high :: ∀ msg. String -> Attribute msg
+high val = SimpleAttribute "high" val
 
-dropzone :: ∀ msg v. Present v => v -> Attribute msg
-dropzone val = SimpleAttribute "dropzone" (present val)
+href :: ∀ msg. String -> Attribute msg
+href val = SimpleAttribute "href" val
 
+hreflang :: ∀ msg. String -> Attribute msg
+hreflang val = SimpleAttribute "hreflang" val
 
-enctype :: ∀ msg v. Present v => v -> Attribute msg
-enctype val = SimpleAttribute "enctype" (present val)
+httpEquiv :: ∀ msg. String -> Attribute msg
+httpEquiv val = SimpleAttribute "http-equiv" val
 
+id_ :: ∀ msg. String -> Attribute msg
+id_ val = SimpleAttribute "id" val
 
-for :: ∀ msg v. Present v => v -> Attribute msg
-for val = SimpleAttribute "for" (present val)
+ismap :: ∀ msg. String -> Attribute msg
+ismap val = SimpleAttribute "ismap" val
 
+kind_ :: ∀ msg. String -> Attribute msg
+kind_ val = SimpleAttribute "kind" val
 
-form :: ∀ msg v. Present v => v -> Attribute msg
-form val = SimpleAttribute "form" (present val)
+label :: ∀ msg. String -> Attribute msg
+label val = SimpleAttribute "label" val
 
+lang :: ∀ msg. String -> Attribute msg
+lang val = SimpleAttribute "lang" val
 
-formaction :: ∀ msg v. Present v => v -> Attribute msg
-formaction val = SimpleAttribute "formaction" (present val)
+list :: ∀ msg. String -> Attribute msg
+list val = SimpleAttribute "list" val
 
+loop :: ∀ msg. String -> Attribute msg
+loop val = SimpleAttribute "loop" val
 
-headers :: ∀ msg v. Present v => v -> Attribute msg
-headers val = SimpleAttribute "headers" (present val)
+low :: ∀ msg. String -> Attribute msg
+low val = SimpleAttribute "low" val
 
+max :: ∀ msg. String -> Attribute msg
+max val = SimpleAttribute "max" val
 
-height :: ∀ msg v. Present v => v -> Attribute msg
-height val = SimpleAttribute "height" (present val)
+maxlength :: ∀ msg. String -> Attribute msg
+maxlength val = SimpleAttribute "maxlength" val
 
+media :: ∀ msg. String -> Attribute msg
+media val = SimpleAttribute "media" val
 
-high :: ∀ msg v. Present v => v -> Attribute msg
-high val = SimpleAttribute "high" (present val)
+method :: ∀ msg. String -> Attribute msg
+method val = SimpleAttribute "method" val
 
+min :: ∀ msg. String -> Attribute msg
+min val = SimpleAttribute "min" val
 
-href :: ∀ msg v. Present v => v -> Attribute msg
-href val = SimpleAttribute "href" (present val)
+multiple :: ∀ msg. String -> Attribute msg
+multiple val = SimpleAttribute "multiple" val
 
+muted :: ∀ msg. String -> Attribute msg
+muted val = SimpleAttribute "muted" val
 
-hreflang :: ∀ msg v. Present v => v -> Attribute msg
-hreflang val = SimpleAttribute "hreflang" (present val)
+name :: ∀ msg. String -> Attribute msg
+name val = SimpleAttribute "name" val
 
+novalidate :: ∀ msg. String -> Attribute msg
+novalidate val = SimpleAttribute "novalidate" val
 
-httpEquiv :: ∀ msg v. Present v => v -> Attribute msg
-httpEquiv val = SimpleAttribute "http-equiv" (present val)
+open :: ∀ msg. String -> Attribute msg
+open val = SimpleAttribute "open" val
 
+optimum :: ∀ msg. String -> Attribute msg
+optimum val = SimpleAttribute "optimum" val
 
-id_ :: ∀ msg v. Present v => v -> Attribute msg
-id_ val = SimpleAttribute "id" (present val)
+pattern :: ∀ msg. String -> Attribute msg
+pattern val = SimpleAttribute "pattern" val
 
+placeholder :: ∀ msg. String -> Attribute msg
+placeholder val = SimpleAttribute "placeholder" val
 
-ismap :: ∀ msg v. Present v => v -> Attribute msg
-ismap val = SimpleAttribute "ismap" (present val)
+poster :: ∀ msg. String -> Attribute msg
+poster val = SimpleAttribute "poster" val
 
+preload :: ∀ msg. String -> Attribute msg
+preload val = SimpleAttribute "preload" val
 
-kind_ :: ∀ msg v. Present v => v -> Attribute msg
-kind_ val = SimpleAttribute "kind" (present val)
+readonly :: ∀ msg. String -> Attribute msg
+readonly val = SimpleAttribute "readonly" val
 
+rel :: ∀ msg. String -> Attribute msg
+rel val = SimpleAttribute "rel" val
 
-label :: ∀ msg v. Present v => v -> Attribute msg
-label val = SimpleAttribute "label" (present val)
+required :: ∀ msg. String -> Attribute msg
+required val = SimpleAttribute "required" val
 
+reversed :: ∀ msg. String -> Attribute msg
+reversed val = SimpleAttribute "reversed" val
 
-lang :: ∀ msg v. Present v => v -> Attribute msg
-lang val = SimpleAttribute "lang" (present val)
+rows :: ∀ msg. String -> Attribute msg
+rows val = SimpleAttribute "rows" val
 
+rowspan :: ∀ msg. String -> Attribute msg
+rowspan val = SimpleAttribute "rowspan" val
 
-list :: ∀ msg v. Present v => v -> Attribute msg
-list val = SimpleAttribute "list" (present val)
+sandbox :: ∀ msg. String -> Attribute msg
+sandbox val = SimpleAttribute "sandbox" val
 
+scope :: ∀ msg. String -> Attribute msg
+scope val = SimpleAttribute "scope" val
 
-loop :: ∀ msg v. Present v => v -> Attribute msg
-loop val = SimpleAttribute "loop" (present val)
+selected :: ∀ msg. String -> Attribute msg
+selected val = SimpleAttribute "selected" val
 
+shape :: ∀ msg. String -> Attribute msg
+shape val = SimpleAttribute "shape" val
 
-low :: ∀ msg v. Present v => v -> Attribute msg
-low val = SimpleAttribute "low" (present val)
+size :: ∀ msg. String -> Attribute msg
+size val = SimpleAttribute "size" val
 
+sizes :: ∀ msg. String -> Attribute msg
+sizes val = SimpleAttribute "sizes" val
 
-max :: ∀ msg v. Present v => v -> Attribute msg
-max val = SimpleAttribute "max" (present val)
+span :: ∀ msg. String -> Attribute msg
+span val = SimpleAttribute "span" val
 
+spellcheck :: ∀ msg. String -> Attribute msg
+spellcheck val = SimpleAttribute "spellcheck" val
 
-maxlength :: ∀ msg v. Present v => v -> Attribute msg
-maxlength val = SimpleAttribute "maxlength" (present val)
+src :: ∀ msg. String -> Attribute msg
+src val = SimpleAttribute "src" val
 
+srcdoc :: ∀ msg. String -> Attribute msg
+srcdoc val = SimpleAttribute "srcdoc" val
 
-media :: ∀ msg v. Present v => v -> Attribute msg
-media val = SimpleAttribute "media" (present val)
+srclang :: ∀ msg. String -> Attribute msg
+srclang val = SimpleAttribute "srclang" val
 
+srcset :: ∀ msg. String -> Attribute msg
+srcset val = SimpleAttribute "srcset" val
 
-method :: ∀ msg v. Present v => v -> Attribute msg
-method val = SimpleAttribute "method" (present val)
+start :: ∀ msg. String -> Attribute msg
+start val = SimpleAttribute "start" val
 
+step :: ∀ msg. String -> Attribute msg
+step val = SimpleAttribute "step" val
 
-min :: ∀ msg v. Present v => v -> Attribute msg
-min val = SimpleAttribute "min" (present val)
+tabindex :: ∀ msg. String -> Attribute msg
+tabindex val = SimpleAttribute "tabindex" val
 
+target :: ∀ msg. String -> Attribute msg
+target val = SimpleAttribute "target" val
 
-multiple :: ∀ msg v. Present v => v -> Attribute msg
-multiple val = SimpleAttribute "multiple" (present val)
+title :: ∀ msg. String -> Attribute msg
+title val = SimpleAttribute "title" val
 
+translate :: ∀ msg. String -> Attribute msg
+translate val = SimpleAttribute "translate" val
 
-muted :: ∀ msg v. Present v => v -> Attribute msg
-muted val = SimpleAttribute "muted" (present val)
+type_ :: ∀ msg. String -> Attribute msg
+type_ val = SimpleAttribute "type" val
 
+usemap :: ∀ msg. String -> Attribute msg
+usemap val = SimpleAttribute "usemap" val
 
-name :: ∀ msg v. Present v => v -> Attribute msg
-name val = SimpleAttribute "name" (present val)
+value :: ∀ msg. String -> Attribute msg
+value val = SimpleAttribute "value" val
 
+width :: ∀ msg. String -> Attribute msg
+width val = SimpleAttribute "width" val
 
-novalidate :: ∀ msg v. Present v => v -> Attribute msg
-novalidate val = SimpleAttribute "novalidate" (present val)
-
-
-open :: ∀ msg v. Present v => v -> Attribute msg
-open val = SimpleAttribute "open" (present val)
-
-
-optimum :: ∀ msg v. Present v => v -> Attribute msg
-optimum val = SimpleAttribute "optimum" (present val)
-
-
-pattern :: ∀ msg v. Present v => v -> Attribute msg
-pattern val = SimpleAttribute "pattern" (present val)
-
-
-placeholder :: ∀ msg v. Present v => v -> Attribute msg
-placeholder val = SimpleAttribute "placeholder" (present val)
-
-
-poster :: ∀ msg v. Present v => v -> Attribute msg
-poster val = SimpleAttribute "poster" (present val)
-
-
-preload :: ∀ msg v. Present v => v -> Attribute msg
-preload val = SimpleAttribute "preload" (present val)
-
-
-readonly :: ∀ msg v. Present v => v -> Attribute msg
-readonly val = SimpleAttribute "readonly" (present val)
-
-
-rel :: ∀ msg v. Present v => v -> Attribute msg
-rel val = SimpleAttribute "rel" (present val)
-
-
-required :: ∀ msg v. Present v => v -> Attribute msg
-required val = SimpleAttribute "required" (present val)
-
-
-reversed :: ∀ msg v. Present v => v -> Attribute msg
-reversed val = SimpleAttribute "reversed" (present val)
-
-
-rows :: ∀ msg v. Present v => v -> Attribute msg
-rows val = SimpleAttribute "rows" (present val)
-
-
-rowspan :: ∀ msg v. Present v => v -> Attribute msg
-rowspan val = SimpleAttribute "rowspan" (present val)
-
-
-sandbox :: ∀ msg v. Present v => v -> Attribute msg
-sandbox val = SimpleAttribute "sandbox" (present val)
-
-
-scope :: ∀ msg v. Present v => v -> Attribute msg
-scope val = SimpleAttribute "scope" (present val)
-
-
-selected :: ∀ msg v. Present v => v -> Attribute msg
-selected val = SimpleAttribute "selected" (present val)
-
-
-shape :: ∀ msg v. Present v => v -> Attribute msg
-shape val = SimpleAttribute "shape" (present val)
-
-
-size :: ∀ msg v. Present v => v -> Attribute msg
-size val = SimpleAttribute "size" (present val)
-
-
-sizes :: ∀ msg v. Present v => v -> Attribute msg
-sizes val = SimpleAttribute "sizes" (present val)
-
-
-span :: ∀ msg v. Present v => v -> Attribute msg
-span val = SimpleAttribute "span" (present val)
-
-
-spellcheck :: ∀ msg v. Present v => v -> Attribute msg
-spellcheck val = SimpleAttribute "spellcheck" (present val)
-
-
-src :: ∀ msg v. Present v => v -> Attribute msg
-src val = SimpleAttribute "src" (present val)
-
-
-srcdoc :: ∀ msg v. Present v => v -> Attribute msg
-srcdoc val = SimpleAttribute "srcdoc" (present val)
-
-
-srclang :: ∀ msg v. Present v => v -> Attribute msg
-srclang val = SimpleAttribute "srclang" (present val)
-
-
-srcset :: ∀ msg v. Present v => v -> Attribute msg
-srcset val = SimpleAttribute "srcset" (present val)
-
-
-start :: ∀ msg v. Present v => v -> Attribute msg
-start val = SimpleAttribute "start" (present val)
-
-
-step :: ∀ msg v. Present v => v -> Attribute msg
-step val = SimpleAttribute "step" (present val)
-
-
-tabindex :: ∀ msg v. Present v => v -> Attribute msg
-tabindex val = SimpleAttribute "tabindex" (present val)
-
-
-target :: ∀ msg v. Present v => v -> Attribute msg
-target val = SimpleAttribute "target" (present val)
-
-
-title :: ∀ msg v. Present v => v -> Attribute msg
-title val = SimpleAttribute "title" (present val)
-
-
-translate :: ∀ msg v. Present v => v -> Attribute msg
-translate val = SimpleAttribute "translate" (present val)
-
-
-type_ :: ∀ msg v. Present v => v -> Attribute msg
-type_ val = SimpleAttribute "type" (present val)
-
-
-usemap :: ∀ msg v. Present v => v -> Attribute msg
-usemap val = SimpleAttribute "usemap" (present val)
-
-
-value :: ∀ msg v. Present v => Present v => v -> Attribute msg
-value val = SimpleAttribute "value" (present val)
-
-
-width :: ∀ msg v. Present v => v -> Attribute msg
-width val = SimpleAttribute "width" (present val)
-
-
-wrap :: ∀ msg v. Present v => v -> Attribute msg
-wrap val = SimpleAttribute "wrap" (present val)
-
+wrap :: ∀ msg. String -> Attribute msg
+wrap val = SimpleAttribute "wrap" val

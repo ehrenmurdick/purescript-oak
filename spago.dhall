@@ -1,7 +1,6 @@
 { name = "purescript-oak"
 , dependencies =
-  [ "arrays"
-  , "console"
+  [ "console"
   , "effect"
   , "either"
   , "foldable-traversable"
@@ -10,7 +9,6 @@
   , "partial"
   , "prelude"
   , "refs"
-  , "tuples"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
