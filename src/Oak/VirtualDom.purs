@@ -15,22 +15,31 @@ render :: forall msg r. (msg -> Effect r) -> Html msg -> Effect N.Tree
 render h xs = renderTag h xs
 
 renderTag :: forall msg r. (msg -> Effect r) -> Html msg -> Effect N.Tree
-renderTag h (Tag name attrs children) = let rendered = sequence $ map (renderTag h) children
-                                        in N.render name (combineAttrs attrs h) rendered
+renderTag h (Tag name attrs children) =
+  let
+    rendered = sequence $ map (renderTag h) children
+  in
+    N.render name (combineAttrs attrs h) rendered
 
 renderTag _ (Text str) = N.text str
 
-concatAttr ::
-  forall msg eff.
-  (msg -> eff) ->
-  Attribute msg ->
-  N.NativeAttrs ->
-  N.NativeAttrs
-concatAttr handler (EventHandler name msg) attrs = N.concatHandlerFun name (\_ ->
-  handler msg) attrs
+concatAttr
+  :: forall msg eff
+   . (msg -> eff)
+  -> Attribute msg
+  -> N.NativeAttrs
+  -> N.NativeAttrs
+concatAttr handler (EventHandler name msg) attrs = N.concatHandlerFun name
+  ( \_ ->
+      handler msg
+  )
+  attrs
 
-concatAttr handler (StringEventHandler name f) attrs = N.concatEventTargetValueHandlerFun name (\e ->
-  handler (f e)) attrs
+concatAttr handler (StringEventHandler name f) attrs = N.concatEventTargetValueHandlerFun name
+  ( \e ->
+      handler (f e)
+  )
+  attrs
 
 concatAttr _ (SimpleAttribute name value) attrs = N.concatSimpleAttr name value attrs
 
@@ -40,8 +49,11 @@ concatAttr _ (BooleanAttribute name b) attrs = N.concatBooleanAttr name b attrs
 
 concatAttr _ (DataAttribute name val) attrs = N.concatDataAttr name val attrs
 
-concatAttr handler (KeyPressEventHandler name f) attrs = N.concatHandlerFun name (\e ->
-  handler (f e)) attrs
+concatAttr handler (KeyPressEventHandler name f) attrs = N.concatHandlerFun name
+  ( \e ->
+      handler (f e)
+  )
+  attrs
 
 stringifyStyle :: StyleAttribute -> String
 stringifyStyle (StyleAttribute name value) = name <> ":" <> value
@@ -49,11 +61,11 @@ stringifyStyle (StyleAttribute name value) = name <> ":" <> value
 stringifyStyles :: Array StyleAttribute -> String
 stringifyStyles attrs = intercalate ";" (map stringifyStyle attrs)
 
-combineAttrs ::
-  forall msg eff.
-  Array (Attribute msg) ->
-  (msg -> eff) ->
-  N.NativeAttrs
+combineAttrs
+  :: forall msg eff
+   . Array (Attribute msg)
+  -> (msg -> eff)
+  -> N.NativeAttrs
 combineAttrs attrs handler = foldr (concatAttr handler) N.emptyAttrs attrs
 
 patch :: N.Tree -> N.Tree -> Node -> Effect Node

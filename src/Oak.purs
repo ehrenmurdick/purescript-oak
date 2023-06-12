@@ -12,6 +12,8 @@ module Oak
 
 import Oak.Html
 
+import Effect.Aff
+
 import Data.Either
   ( Either(..)
   , choose
@@ -113,11 +115,22 @@ import Prelude (bind, discard, pure, Unit, unit)
 
 import Oak.VirtualDom.Native as N
 
-data App msg model
-  = App {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, view :: model -> View msg}
+type NextFn msg model = (msg -> model -> Aff msg)
 
-data RunningApp msg model
-  = RunningApp {update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, view :: model -> View msg}
+data App msg model = App
+  { init :: model
+  , update :: msg -> model -> model
+  , next ::
+      NextFn msg
+        model
+  , view :: model -> View msg
+  }
+
+data RunningApp msg model = RunningApp
+  { update :: msg -> model -> model
+  , next :: NextFn msg model
+  , view :: model -> View msg
+  }
 
 -- | createApp takes a record with a description of your Oak app.
 -- | It has a few parts:
@@ -145,43 +158,43 @@ data RunningApp msg model
 -- |
 -- | Takes an incoming message, and the previous model state,
 -- | and returns the new model state.
-createApp ::
-  forall msg model.
-  {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, view :: model -> View msg} ->
-  App msg model
-createApp opts = App { init: opts.init
-                     , view: opts.view
-                     , next: opts.next
-                     , update: opts.update
-                     }
+createApp
+  :: forall msg model
+   . { init :: model, update :: msg -> model -> model, next :: NextFn msg model, view :: model -> View msg }
+  -> App msg model
+createApp opts = App
+  { init: opts.init
+  , view: opts.view
+  , next: opts.next
+  , update: opts.update
+  }
 
-unwrapApp ::
-  forall msg model.
-  App msg model ->
-  {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, view :: model -> View msg}
+unwrapApp
+  :: forall msg model
+   . App msg model
+  -> { init :: model, update :: msg -> model -> model, next :: NextFn msg model, view :: model -> View msg }
 unwrapApp (App app) = app
 
 -- | Kicks off the running app, and returns an effect
 -- | containing the root node of the app, which can
 -- | be used to embed the application. See the `main` function
 -- | of the example app in the readme.
-runApp ::
-  forall msg model.
-  App msg model ->
-  Maybe msg ->
-  Effect Node
+runApp
+  :: forall msg model
+   . App msg model
+  -> Maybe msg
+  -> Effect Node
 runApp msg app = do
   runApp_ msg app
 
-type Runtime m
-  = {tree :: Maybe N.Tree, root :: Maybe Node, model :: m}
+type Runtime m = { tree :: Maybe N.Tree, root :: Maybe Node, model :: m }
 
-handler ::
-  forall msg model.
-  Ref.Ref (Runtime model) ->
-  RunningApp msg model ->
-  msg ->
-  Effect Unit
+handler
+  :: forall msg model
+   . Ref.Ref (Runtime model)
+  -> RunningApp msg model
+  -> msg
+  -> Effect Unit
 handler ref runningApp msg = do
   env <- Ref.read ref
   let (RunningApp app) = runningApp
@@ -190,20 +203,28 @@ handler ref runningApp msg = do
   let newModel = app.update msg env.model
   newTree <- render (handler ref runningApp) (app.view newModel)
   newRoot <- patch newTree oldTree oldRoot
-  let newRuntime = { root: Just newRoot
-                   , tree: Just newTree
-                   , model: newModel
-                   }
+  let
+    newRuntime =
+      { root: Just newRoot
+      , tree: Just newTree
+      , model: newModel
+      }
   Ref.write newRuntime ref
-  app.next msg newModel (handler ref runningApp)
-  mempty
+  let aff = app.next msg newModel
+  runAff_ handleAff aff
+  where
+  handleAff :: Either Error msg -> Effect Unit
+  handleAff (Right m) = handler ref runningApp m
+  handleAff _ = mempty
 
 runApp_ :: forall msg model. App msg model -> Maybe msg -> Effect Node
 runApp_ (App app) msg = do
-  let runningApp = { view: app.view
-                   , next: app.next
-                   , update: app.update
-                   }
+  let
+    runningApp =
+      { view: app.view
+      , next: app.next
+      , update: app.update
+      }
   let initialModel = app.init
   ref <- Ref.new { tree: Nothing, root: Nothing, model: initialModel }
   tree <- render (handler ref (RunningApp runningApp)) (runningApp.view initialModel)
