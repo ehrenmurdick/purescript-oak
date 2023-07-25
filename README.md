@@ -55,26 +55,26 @@ spago init
 
 # Install Oak
 spago install oak
+
+# We will also have a plain js dependency, so initialize npm as well
+npm init
+
+# Create an index.html to be the entry point
+cata > index.html << EOF
+<html>
+<body><div id="app"></div></body>
+<script src="index.js"></script>
+</html>
+EOF
+
+# Build your app
+spago bundle-app
 ```
 
 
-
-
-```
-bower install purescript-oak
-```
-
-This library requires the `virtual-dom` module. You can get it by using npm to install virtual-dom.
-
-```
-npm install virtual-dom
-```
-
-Documentation is published on [pursuit](https://pursuit.purescript.org/packages/purescript-oak/).
-
-A breif example Oak app:
-
-```
+Start writing your Oak application! Open index.html in a browser to see the app
+running.
+```purescript
 module Main (main) where
 
 import Oak
@@ -120,3 +120,5 @@ main = do
   container <- getElementById "app"
   appendChildNode container rootNode
 ```
+
+Documentation is published on [pursuit](https://pursuit.purescript.org/packages/purescript-oak/).
