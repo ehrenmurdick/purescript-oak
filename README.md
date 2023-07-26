@@ -39,10 +39,12 @@ languages!
 
 Let's embark on this adventure together and unlock the true potential of functional programming with Oak! Happy coding!
 
+Documentation is published on [pursuit](https://pursuit.purescript.org/packages/purescript-oak/).
+
 ### Getting started
 
 First, create a purescript project. You'll need npm (or yarn).
-```
+```sh
 # Maybe take a coffee break while this installs, it can take a few minutes.
 npm install -g purescript
 
@@ -60,7 +62,7 @@ spago install oak
 npm init
 
 # Create an index.html to be the entry point
-cata > index.html << EOF
+cat > index.html << EOF
 <html>
 <body><div id="app"></div></body>
 <script src="index.js"></script>
@@ -73,7 +75,8 @@ spago bundle-app
 
 
 Start writing your Oak application! Open index.html in a browser to see the app
-running.
+running. Here's a bit of starter boilerplate or see the src/examples directory
+to see some examples of how to do common tasks.
 ```purescript
 module Main (main) where
 
@@ -121,4 +124,3 @@ main = do
   appendChildNode container rootNode
 ```
 
-Documentation is published on [pursuit](https://pursuit.purescript.org/packages/purescript-oak/).
