@@ -176,6 +176,10 @@ runApp msg app = do
 type Runtime m
   = {tree :: Maybe N.Tree, root :: Maybe Node, model :: m}
 
+-- TODO: investigate implementing monoid for App and replace
+--       state loop with foldl
+-- TODO: decouple rendering from app event loop to facilitate
+--       different rendering backends
 handler ::
   forall msg model.
   Ref.Ref (Runtime model) ->
