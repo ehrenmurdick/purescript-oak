@@ -1,0 +1,21 @@
+package:
+  name: oak
+  dependencies:
+    - console
+    - effect
+    - either
+    - foldable-traversable
+    - functions
+    - maybe
+    - partial
+    - prelude
+    - refs
+  test:
+    main: Test.Main
+    dependencies:
+      - console
+      - effect
+workspace:
+  packageSet:
+    registry: 80.8.1
+  extraPackages: {}

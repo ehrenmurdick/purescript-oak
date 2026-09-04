@@ -46,7 +46,7 @@ Documentation is published on [pursuit](https://pursuit.purescript.org/packages/
 First, create a purescript project. You'll need npm (or yarn).
 ```sh
 # Maybe take a coffee break while this installs, it can take a few minutes.
-npm install -g purescript
+npm install -g purescript spago
 
 # Create your project's directory
 mkdir my-oak-app
@@ -70,7 +70,7 @@ cat > index.html << EOF
 EOF
 
 # Build your app
-spago bundle-app
+spago bundle
 ```
 
 
