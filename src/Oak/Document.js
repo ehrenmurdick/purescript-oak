@@ -12,8 +12,6 @@ export function getElementByIdImpl(id) {
 export function appendChildNodeImpl(container) {
   return function (rootNode) {
     return function () {
-      console.log("container", container);
-      console.log("rootNode", rootNode);
       container.appendChild(rootNode);
     };
   };

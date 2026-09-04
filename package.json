@@ -8,7 +8,8 @@
   },
   "scripts": {
     "build": "spago build",
-    "test": "spago test"
+    "build:test-app": "spago build && esbuild test/entry.js --bundle --platform=browser --outfile=test/app.js",
+    "test": "spago test && npm run build:test-app && node scripts/open-browser.mjs test/index.html"
   },
   "repository": {
     "type": "git",
@@ -21,8 +22,11 @@
   },
   "homepage": "https://github.com/ehrenmurdick/purescript-oak#readme",
   "devDependencies": {
+    "esbuild": "^0.28.2",
     "eslint": "^8.41.0",
+    "open": "^11.0.2",
     "purescript": "^0.15.16",
-    "spago": "^1.0.4"
+    "spago": "^1.0.4",
+    "virtual-dom": "^2.1.1"
   }
 }

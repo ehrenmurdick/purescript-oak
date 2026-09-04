@@ -11,6 +11,7 @@
 yarn-error.log
 src/Main.purs
 index.html
+!test/index.html
 app.js
 example/
 style.css

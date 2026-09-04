@@ -1,15 +1,12 @@
-let h = require("virtual-dom/h");
-let diff = require("virtual-dom/diff");
-let patch = require("virtual-dom/patch");
-let createElement = require("virtual-dom/create-element");
+import h from "virtual-dom/h.js";
+import diff from "virtual-dom/diff.js";
+import patch from "virtual-dom/patch.js";
+import createElement from "virtual-dom/create-element.js";
 
 // foreign import createRootNodeImpl :: ∀ e.
 //   Fn1 Tree (Eff ( createRootNode :: NODE | e ) Node)
 export function createRootNodeImpl(tree) {
-  console.log("tree", tree);
-  const el = createElement(tree);
-  console.log("el", el);
-  return el;
+  return createElement(tree);
 }
 
 // foreign import textImpl :: ∀ e.

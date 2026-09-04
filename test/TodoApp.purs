@@ -1,0 +1,254 @@
+module Test.TodoApp (main) where
+
+-- This app exists to exercise Oak end-to-end: every Attribute constructor
+-- (SimpleAttribute, BooleanAttribute, DataAttribute, Style, EventHandler,
+-- StringEventHandler, KeyPressEventHandler), a spread of Html tags, the
+-- Oak.Css style helpers, the Either/Maybe re-exports, the `next` command
+-- pattern, and Oak.Document's ready/mount lifecycle -- wired up as a
+-- working todo list.
+
+import Oak hiding (data_)
+import Oak.Css (color, fontWeight, textDecoration)
+import Oak.Html.Attribute
+  ( KeyPressEvent
+  , checked
+  , className
+  , data_
+  , disabled
+  , hidden
+  , id_
+  , placeholder
+  , style
+  , type_
+  , value
+  )
+import Oak.Html.Events (onKeydown')
+
+import Prelude hiding (div)
+
+import Data.Array (filter, length)
+import Effect (Effect)
+import Effect.Class.Console (log)
+
+type Todo =
+  { id :: Int
+  , text :: String
+  , completed :: Boolean
+  }
+
+data Filter = All | Active | Completed
+
+derive instance eqFilter :: Eq Filter
+
+type Model =
+  { todos :: Array Todo
+  , draft :: String
+  , nextId :: Int
+  , editing :: Maybe Int
+  , editText :: String
+  , filter :: Filter
+  }
+
+data Msg
+  = UpdateDraft String
+  | DraftKeyDown Int
+  | AddTodo
+  | ToggleTodo Int
+  | DeleteTodo Int
+  | StartEdit Int String
+  | UpdateEditText String
+  | EditKeyDown KeyPressEvent
+  | CommitEdit
+  | CancelEdit
+  | SetFilter Filter
+  | ClearCompleted
+
+-- model
+--------
+
+init :: Model
+init =
+  { todos:
+      [ { id: 1, text: "Learn Oak", completed: true }
+      , { id: 2, text: "Build a todo app", completed: false }
+      , { id: 3, text: "Open it in a browser", completed: false }
+      ]
+  , draft: ""
+  , nextId: 4
+  , editing: Nothing
+  , editText: ""
+  , filter: All
+  }
+
+-- update
+---------
+
+validateDraft :: String -> Either String String
+validateDraft s = if s == "" then Left "draft is empty" else Right s
+
+addTodo :: Model -> Model
+addTodo model = case validateDraft model.draft of
+  Left _ -> model
+  Right t -> model
+    { todos = model.todos <> [ { id: model.nextId, text: t, completed: false } ]
+    , draft = ""
+    , nextId = model.nextId + 1
+    }
+
+commitEdit :: Model -> Model
+commitEdit model = case model.editing of
+  Nothing -> model
+  Just editId -> case validateDraft model.editText of
+    Left _ -> model
+    Right t -> model
+      { todos = map (\td -> if td.id == editId then td { text = t } else td) model.todos
+      , editing = Nothing
+      , editText = ""
+      }
+
+cancelEdit :: Model -> Model
+cancelEdit model = model { editing = Nothing, editText = "" }
+
+update :: Msg -> Model -> Model
+update msg model = case msg of
+  UpdateDraft s -> model { draft = s }
+  DraftKeyDown code -> if code == 13 then addTodo model else model
+  AddTodo -> addTodo model
+  ToggleTodo tid -> model
+    { todos = map (\t -> if t.id == tid then t { completed = not t.completed } else t) model.todos
+    }
+  DeleteTodo tid -> model { todos = filter (\t -> t.id /= tid) model.todos }
+  StartEdit tid currentText -> model { editing = Just tid, editText = currentText }
+  UpdateEditText s -> model { editText = s }
+  EditKeyDown e
+    | e.key == "Enter" -> commitEdit model
+    | e.key == "Escape" -> cancelEdit model
+    | otherwise -> model
+  CommitEdit -> commitEdit model
+  CancelEdit -> cancelEdit model
+  SetFilter f -> model { filter = f }
+  ClearCompleted -> model { todos = filter (not <<< _.completed) model.todos }
+
+-- next (command pattern -- logs a message alongside the state update)
+------------------------------------------------------------------------
+
+next :: Msg -> Model -> (Msg -> Effect Unit) -> Effect Unit
+next msg _ _ = case msg of
+  AddTodo -> log "added a todo (button)"
+  DraftKeyDown code | code == 13 -> log "added a todo (enter key)"
+  DeleteTodo tid -> log ("deleted todo " <> show tid)
+  ClearCompleted -> log "cleared completed todos"
+  _ -> pure unit
+
+-- view
+-------
+
+activeCount :: Array Todo -> Int
+activeCount todos = length (filter (not <<< _.completed) todos)
+
+completedCount :: Array Todo -> Int
+completedCount todos = length (filter _.completed todos)
+
+visibleTodos :: Model -> Array Todo
+visibleTodos model = case model.filter of
+  All -> model.todos
+  Active -> filter (not <<< _.completed) model.todos
+  Completed -> filter _.completed model.todos
+
+filterName :: Filter -> String
+filterName f = case f of
+  All -> "All"
+  Active -> "Active"
+  Completed -> "Completed"
+
+view :: Model -> Html Msg
+view model =
+  div
+    [ id_ "todoapp" ]
+    [ header []
+        [ h1 [] [ text "Oak Todos" ]
+        , div []
+            [ input
+                [ type_ "text"
+                , placeholder "What needs to be done?"
+                , value model.draft
+                , onInput UpdateDraft
+                , onKeydown DraftKeyDown
+                ]
+                []
+            , button
+                [ onClick AddTodo
+                , disabled (model.draft == "")
+                ]
+                [ text "Add" ]
+            ]
+        ]
+    , ul [ className "todo-list" ]
+        (map (viewTodo model.editing model.editText) (visibleTodos model))
+    , footer []
+        [ span [] [ text (show (activeCount model.todos) <> " item(s) left") ]
+        , span [] (map (viewFilterButton model.filter) [ All, Active, Completed ])
+        , button
+            [ onClick ClearCompleted
+            , hidden (completedCount model.todos == 0)
+            ]
+            [ text "Clear completed" ]
+        ]
+    ]
+
+viewTodo :: Maybe Int -> String -> Todo -> Html Msg
+viewTodo editing editText todo =
+  li
+    [ className (if todo.completed then "completed" else "") ]
+    ( case editing of
+        Just editId | editId == todo.id ->
+          [ input
+              [ type_ "text"
+              , value editText
+              , onInput UpdateEditText
+              , onKeydown' EditKeyDown
+              , onBlur CommitEdit
+              ]
+              []
+          ]
+        _ ->
+          [ input
+              [ type_ "checkbox"
+              , checked todo.completed
+              , onChange (ToggleTodo todo.id)
+              ]
+              []
+          , span
+              [ onDblclick (StartEdit todo.id todo.text)
+              , style
+                  ( if todo.completed then
+                      [ textDecoration "line-through", color "#999" ]
+                    else
+                      []
+                  )
+              ]
+              [ text todo.text ]
+          , button [ onClick (DeleteTodo todo.id) ] [ text "x" ]
+          ]
+    )
+
+viewFilterButton :: Filter -> Filter -> Html Msg
+viewFilterButton current f =
+  button
+    [ onClick (SetFilter f)
+    , data_ "filter" (filterName f)
+    , style (if current == f then [ fontWeight "bold" ] else [])
+    ]
+    [ text (filterName f) ]
+
+-- entry point
+--------------
+
+app :: App Msg Model
+app = createApp { init, view, update, next }
+
+main :: Effect Unit
+main = onDocumentReady do
+  rootNode <- runApp app Nothing
+  container <- getElementById "app"
+  appendChildNode container rootNode
