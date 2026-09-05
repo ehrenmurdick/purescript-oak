@@ -4,8 +4,8 @@ module Test.TodoApp (main) where
 -- (SimpleAttribute, BooleanAttribute, DataAttribute, Style, EventHandler,
 -- StringEventHandler, KeyPressEventHandler), a spread of Html tags, the
 -- Oak.Css style helpers, the Either/Maybe re-exports, the `next` command
--- pattern, and Oak.Document's ready/mount lifecycle -- wired up as a
--- working todo list.
+-- pattern, Oak.Window's native dialogs, and Oak.Document's ready/mount
+-- lifecycle -- wired up as a working todo list.
 
 import Oak hiding (data_)
 import Oak.Css (color, fontWeight, textDecoration)
@@ -54,7 +54,10 @@ data Msg
   | DraftKeyDown Int
   | AddTodo
   | ToggleTodo Int
+  | AskDeleteTodo Int
   | DeleteTodo Int
+  | AskRenameTodo Int String
+  | RenameTodo Int String
   | StartEdit Int String
   | UpdateEditText String
   | EditKeyDown KeyPressEvent
@@ -117,7 +120,12 @@ update msg model = case msg of
   ToggleTodo tid -> model
     { todos = map (\t -> if t.id == tid then t { completed = not t.completed } else t) model.todos
     }
+  AskDeleteTodo _ -> model
   DeleteTodo tid -> model { todos = filter (\t -> t.id /= tid) model.todos }
+  AskRenameTodo _ _ -> model
+  RenameTodo tid t -> model
+    { todos = map (\td -> if td.id == tid then td { text = t } else td) model.todos
+    }
   StartEdit tid currentText -> model { editing = Just tid, editText = currentText }
   UpdateEditText s -> model { editText = s }
   EditKeyDown e
@@ -129,15 +137,25 @@ update msg model = case msg of
   SetFilter f -> model { filter = f }
   ClearCompleted -> model { todos = filter (not <<< _.completed) model.todos }
 
--- next (command pattern -- logs a message alongside the state update)
+-- next (command pattern -- logging, plus the Oak.Window dialogs, which feed
+-- their answers back in through `continue`)
 ------------------------------------------------------------------------
 
 next :: Msg -> Model -> (Msg -> Effect Unit) -> Effect Unit
-next msg _ _ = case msg of
+next msg _ continue = case msg of
   AddTodo -> log "added a todo (button)"
   DraftKeyDown code | code == 13 -> log "added a todo (enter key)"
+  AskDeleteTodo tid ->
+    confirm "Delete this todo?" \ok ->
+      if ok then continue (DeleteTodo tid) else log "delete cancelled"
   DeleteTodo tid -> log ("deleted todo " <> show tid)
-  ClearCompleted -> log "cleared completed todos"
+  AskRenameTodo tid currentText ->
+    prompt' "Rename this todo:" currentText case _ of
+      Just t | t /= "" -> continue (RenameTodo tid t)
+      Just _ -> alert "A todo can't be empty."
+      Nothing -> log "rename cancelled"
+  RenameTodo tid _ -> log ("renamed todo " <> show tid)
+  ClearCompleted -> alert' "Cleared the completed todos." (log "cleared completed todos")
   _ -> pure unit
 
 -- view
@@ -228,7 +246,8 @@ viewTodo editing editText todo =
                   )
               ]
               [ text todo.text ]
-          , button [ onClick (DeleteTodo todo.id) ] [ text "x" ]
+          , button [ onClick (AskRenameTodo todo.id todo.text) ] [ text "rename" ]
+          , button [ onClick (AskDeleteTodo todo.id) ] [ text "x" ]
           ]
     )
 

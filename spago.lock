@@ -11,6 +11,7 @@
             "foldable-traversable",
             "functions",
             "maybe",
+            "nullable",
             "partial",
             "prelude",
             "refs"
@@ -893,6 +894,16 @@
         "prelude",
         "tuples",
         "unfoldable"
+      ]
+    },
+    "nullable": {
+      "type": "registry",
+      "version": "6.0.0",
+      "integrity": "sha256-CDAZk+L9Sc0GCFTkE8n+qdp4Ys8avvnkU+m2hVALt7M=",
+      "dependencies": [
+        "functions",
+        "maybe",
+        "prelude"
       ]
     },
     "orders": {

@@ -4,6 +4,7 @@ module Oak
   , module Oak.Document
   , module Oak.Html
   , module Oak.Html.Events
+  , module Oak.Window
   , App
   , createApp
   , runApp
@@ -108,6 +109,7 @@ import Oak.Html.Events
   , onWheel
   )
 import Oak.VirtualDom (patch, render)
+import Oak.Window (alert, alert', confirm, prompt, prompt')
 import Partial.Unsafe (unsafePartial)
 import Prelude (bind, discard, pure, Unit, unit)
 
