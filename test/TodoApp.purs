@@ -21,6 +21,7 @@ import Oak.Html.Attribute
   , for
   , hidden
   , id_
+  , key
   , placeholder
   , style
   , type_
@@ -273,7 +274,9 @@ view model =
 viewTodo :: Maybe Int -> String -> Todo -> Html Msg
 viewTodo editing editText todo =
   li
-    [ className (if todo.completed then "completed" else "") ]
+    [ key ("todo-" <> show todo.id)
+    , className (if todo.completed then "completed" else "")
+    ]
     ( case editing of
         Just editId | editId == todo.id ->
           [ input

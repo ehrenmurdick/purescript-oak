@@ -211,6 +211,13 @@ ismap val = SimpleAttribute "ismap" val
 kind_ :: ∀ msg. String -> Attribute msg
 kind_ val = SimpleAttribute "kind" val
 
+-- | Not an HTML attribute: virtual-dom lifts `key` out of the property list
+-- | and onto the vnode itself, so it never reaches the DOM. Give the children
+-- | of a list stable keys and virtual-dom will move the existing nodes when
+-- | the list reorders, instead of patching each position in place.
+key :: ∀ msg. String -> Attribute msg
+key val = SimpleAttribute "key" val
+
 label :: ∀ msg. String -> Attribute msg
 label val = SimpleAttribute "label" val
 
