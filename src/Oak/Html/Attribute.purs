@@ -28,6 +28,8 @@ data Attribute msg
   = BooleanAttribute String Boolean
   | DataAttribute String String
   | EventHandler String msg
+  | ForcedBoolean String Boolean
+  | ForcedString String String
   | KeyPressEventHandler String (KeyPressEvent -> msg)
   | SimpleAttribute String String
   | StringEventHandler String (String -> msg)
@@ -41,6 +43,8 @@ instance attributeFunctor :: Functor Attribute where
       EventHandler n msg -> EventHandler n (f msg)
       KeyPressEventHandler n ctor -> KeyPressEventHandler n (ctor >>> f)
       BooleanAttribute n bool -> BooleanAttribute n bool
+      ForcedBoolean n bool -> ForcedBoolean n bool
+      ForcedString n val -> ForcedString n val
       DataAttribute n dat -> DataAttribute n dat
       SimpleAttribute a b -> SimpleAttribute a b
       Style a -> Style a
@@ -58,8 +62,10 @@ data_ attrName val = DataAttribute ("data-" <> attrName) val
 -- boolean attrs
 ----------------
 
+-- | Forced: the user can uncheck a box without the vdom knowing, so this is
+-- | written straight to the live node on every patch. See `ForcedBoolean`.
 checked :: ∀ msg. Boolean -> Attribute msg
-checked b = BooleanAttribute "checked" b
+checked b = ForcedBoolean "checked" b
 
 contenteditable :: ∀ msg. Boolean -> Attribute msg
 contenteditable b = BooleanAttribute "contenteditable" b
@@ -343,8 +349,10 @@ type_ val = SimpleAttribute "type" val
 usemap :: ∀ msg. String -> Attribute msg
 usemap val = SimpleAttribute "usemap" val
 
+-- | Forced: the user types into inputs without the vdom knowing, so this is
+-- | written straight to the live node on every patch. See `ForcedString`.
 value :: ∀ msg. String -> Attribute msg
-value val = SimpleAttribute "value" val
+value val = ForcedString "value" val
 
 width :: ∀ msg. String -> Attribute msg
 width val = SimpleAttribute "width" val

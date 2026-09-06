@@ -79,6 +79,46 @@ export function concatBooleanAttrImpl(name, b, rest) {
   }
 }
 
+// A virtual-dom hook. Properties like `checked` and `value` are edited by the
+// user directly on the live node, so the real DOM drifts away from what the
+// vdom thinks is there and an ordinary property diff has nothing to correct.
+// A hook runs on every patch that includes it, so it can re-assert the value
+// regardless of what the diff believes.
+function ForcedProp(value) {
+  this.value = value;
+}
+
+// isHook() rejects own properties -- it tests
+//   typeof h.hook === "function" && !h.hasOwnProperty("hook")
+// so this MUST be on the prototype. An object literal { hook: fn } is not a
+// hook: virtual-dom applies it as an ordinary property, with no error.
+ForcedProp.prototype.hook = function (node, propName) {
+  // Guard the write: assigning .value unconditionally resets the caret and
+  // can break IME composition mid-word.
+  if (node[propName] !== this.value) {
+    node[propName] = this.value;
+  }
+};
+
+// foreign import concatForcedBooleanAttrImpl ::
+//   Fn3 String Boolean NativeAttrs NativeAttrs
+export function concatForcedBooleanAttrImpl(name, b, rest) {
+  var result = Object.assign({}, rest);
+  // A fresh instance every render, deliberately. diffProps short-circuits on
+  // aValue === bValue, so memoising these would drop the hook out of the diff
+  // and silently disable the whole mechanism.
+  result[name] = new ForcedProp(b);
+  return result;
+}
+
+// foreign import concatForcedStringAttrImpl ::
+//   Fn3 String String NativeAttrs NativeAttrs
+export function concatForcedStringAttrImpl(name, val, rest) {
+  var result = Object.assign({}, rest);
+  result[name] = new ForcedProp(val);
+  return result;
+}
+
 // foreign import concatDataAttrImpl ::
 //   Fn3 String String NativeAttrs NativeAttrs
 export function concatDataAttrImpl(name, val, rest) {

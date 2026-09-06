@@ -30,6 +30,16 @@ foreign import concatBooleanAttrImpl :: Fn3 String Boolean NativeAttrs NativeAtt
 concatBooleanAttr :: String -> Boolean -> NativeAttrs -> NativeAttrs
 concatBooleanAttr = runFn3 concatBooleanAttrImpl
 
+foreign import concatForcedBooleanAttrImpl :: Fn3 String Boolean NativeAttrs NativeAttrs
+
+concatForcedBooleanAttr :: String -> Boolean -> NativeAttrs -> NativeAttrs
+concatForcedBooleanAttr = runFn3 concatForcedBooleanAttrImpl
+
+foreign import concatForcedStringAttrImpl :: Fn3 String String NativeAttrs NativeAttrs
+
+concatForcedStringAttr :: String -> String -> NativeAttrs -> NativeAttrs
+concatForcedStringAttr = runFn3 concatForcedStringAttrImpl
+
 foreign import concatDataAttrImpl :: Fn3 String String NativeAttrs NativeAttrs
 
 concatDataAttr :: String -> String -> NativeAttrs -> NativeAttrs

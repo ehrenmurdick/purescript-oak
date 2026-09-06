@@ -5,10 +5,11 @@ module Test.TodoApp (main) where
 -- StringEventHandler, KeyPressEventHandler), a spread of Html tags, the
 -- Oak.Css style helpers, the Either/Maybe re-exports, the `next` command
 -- pattern, Oak.Window's native dialogs, Oak.Subscription's window events,
--- and Oak.Document's ready/mount lifecycle -- wired up as a working todo
--- list.
+-- Oak.Storage's JSON persistence, and Oak.Document's ready/mount lifecycle
+-- -- wired up as a working todo list.
 
 import Oak hiding (data_)
+import Oak.Storage as Storage
 import Oak.Subscription (Subscription, onWindowEvent)
 import Oak.Css (color, fontWeight, textDecoration)
 import Oak.Html.Attribute
@@ -30,6 +31,8 @@ import Oak.Html.Events (onKeydown')
 import Prelude hiding (div)
 
 import Data.Array (filter, length)
+import Data.Foldable (maximum)
+import Data.Maybe (fromMaybe)
 import Effect (Effect)
 import Effect.Class.Console (log)
 
@@ -72,6 +75,8 @@ data Msg
   | ClearCompleted
   | ToggleWatchResize
   | WindowResized
+  | Load
+  | Loaded (Array Todo)
 
 -- model
 --------
@@ -147,13 +152,37 @@ update msg model = case msg of
   ClearCompleted -> model { todos = filter (not <<< _.completed) model.todos }
   ToggleWatchResize -> model { watchingResize = not model.watchingResize }
   WindowResized -> model { resizes = model.resizes + 1 }
+  Load -> model
+  Loaded todos -> model
+    { todos = todos
+    , nextId = fromMaybe 0 (maximum (map _.id todos)) + 1
+    }
 
--- next (command pattern -- logging, plus the Oak.Window dialogs, which feed
--- their answers back in through `continue`)
+-- next (command pattern -- persistence, logging, and the Oak.Window dialogs,
+-- which feed their answers back in through `continue`)
 ------------------------------------------------------------------------
 
+todosKey :: String
+todosKey = "oak.todos"
+
 next :: Msg -> Model -> (Msg -> Effect Unit) -> Effect Unit
-next msg _ continue = case msg of
+next msg model continue = case msg of
+  -- the boot message: it reads storage rather than writing to it, so it must
+  -- not fall through to the save below
+  Load -> do
+    stored <- Storage.get Storage.localStorage todosKey
+    case stored of
+      Just todos -> continue (Loaded todos)
+      Nothing -> log "no saved todos, starting from the defaults"
+  _ -> do
+    announce msg continue
+    saved <- Storage.set Storage.localStorage todosKey model.todos
+    if saved then pure unit else log "could not save todos"
+
+-- | The logging/dialog half of `next`, split out so every message can fall
+-- | through to the save above.
+announce :: Msg -> (Msg -> Effect Unit) -> Effect Unit
+announce msg continue = case msg of
   AddTodo -> log "added a todo (button)"
   DraftKeyDown code | code == 13 -> log "added a todo (enter key)"
   AskDeleteTodo tid ->
@@ -304,6 +333,7 @@ app = createApp { init, view, update, next, subscriptions }
 
 main :: Effect Unit
 main = onDocumentReady do
-  rootNode <- runApp app Nothing
+  -- Load is dispatched as the boot message so `next` can restore from storage
+  rootNode <- runApp app (Just Load)
   container <- getElementById "app"
   appendChildNode container rootNode

@@ -38,6 +38,10 @@ concatAttr _ (Style styles) attrs = N.concatSimpleAttr "style" (stringifyStyles 
 
 concatAttr _ (BooleanAttribute name b) attrs = N.concatBooleanAttr name b attrs
 
+concatAttr _ (ForcedBoolean name b) attrs = N.concatForcedBooleanAttr name b attrs
+
+concatAttr _ (ForcedString name val) attrs = N.concatForcedStringAttr name val attrs
+
 concatAttr _ (DataAttribute name val) attrs = N.concatDataAttr name val attrs
 
 concatAttr handler (KeyPressEventHandler name f) attrs = N.concatHandlerFun name (\e ->

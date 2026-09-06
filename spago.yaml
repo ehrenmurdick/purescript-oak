@@ -12,6 +12,7 @@ package:
     - partial
     - prelude
     - refs
+    - simple-json
   test:
     main: Test.Main
     dependencies:
