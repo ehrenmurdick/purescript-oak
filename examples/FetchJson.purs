@@ -9,6 +9,7 @@ import Effect.Console (logShow)
 import Fetch as F
 
 import Oak
+import Oak.Subscription (Subscription)
 import Oak.Html.Attribute (for, id_)
 import Simple.JSON as JSON
 
@@ -77,8 +78,12 @@ logShow_ :: ∀ a. Show a => a -> Aff Unit
 logShow_ = logShow >>> liftEffect
 
 
+-- this app doesn't listen to anything outside its own view
+subscriptions :: Model -> Array (Subscription Msg)
+subscriptions _ = []
+
 app :: App Msg Model
-app = createApp { init, view, update, next }
+app = createApp { init, view, update, next, subscriptions }
 
 main :: Effect Unit
 main = do

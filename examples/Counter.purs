@@ -4,6 +4,7 @@ module Examples.Counter (main) where
 -- this is the example app featured in the README
 
 import Oak
+import Oak.Subscription (Subscription)
 
 import Prelude hiding (div)
 import Effect
@@ -37,8 +38,12 @@ update msg model = case msg of
 init :: Model
 init = { number: 0 }
 
+-- this app doesn't listen to anything outside its own view
+subscriptions :: Model -> Array (Subscription Msg)
+subscriptions _ = []
+
 app :: App Msg Model
-app = createApp { init, view, update, next }
+app = createApp { init, view, update, next, subscriptions }
 
 main :: Effect Unit
 main = do

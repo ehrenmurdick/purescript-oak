@@ -4,10 +4,12 @@ module Test.TodoApp (main) where
 -- (SimpleAttribute, BooleanAttribute, DataAttribute, Style, EventHandler,
 -- StringEventHandler, KeyPressEventHandler), a spread of Html tags, the
 -- Oak.Css style helpers, the Either/Maybe re-exports, the `next` command
--- pattern, Oak.Window's native dialogs, and Oak.Document's ready/mount
--- lifecycle -- wired up as a working todo list.
+-- pattern, Oak.Window's native dialogs, Oak.Subscription's window events,
+-- and Oak.Document's ready/mount lifecycle -- wired up as a working todo
+-- list.
 
 import Oak hiding (data_)
+import Oak.Subscription (Subscription, onWindowEvent)
 import Oak.Css (color, fontWeight, textDecoration)
 import Oak.Html.Attribute
   ( KeyPressEvent
@@ -15,6 +17,7 @@ import Oak.Html.Attribute
   , className
   , data_
   , disabled
+  , for
   , hidden
   , id_
   , placeholder
@@ -47,6 +50,8 @@ type Model =
   , editing :: Maybe Int
   , editText :: String
   , filter :: Filter
+  , watchingResize :: Boolean
+  , resizes :: Int
   }
 
 data Msg
@@ -65,6 +70,8 @@ data Msg
   | CancelEdit
   | SetFilter Filter
   | ClearCompleted
+  | ToggleWatchResize
+  | WindowResized
 
 -- model
 --------
@@ -81,6 +88,8 @@ init =
   , editing: Nothing
   , editText: ""
   , filter: All
+  , watchingResize: true
+  , resizes: 0
   }
 
 -- update
@@ -136,6 +145,8 @@ update msg model = case msg of
   CancelEdit -> cancelEdit model
   SetFilter f -> model { filter = f }
   ClearCompleted -> model { todos = filter (not <<< _.completed) model.todos }
+  ToggleWatchResize -> model { watchingResize = not model.watchingResize }
+  WindowResized -> model { resizes = model.resizes + 1 }
 
 -- next (command pattern -- logging, plus the Oak.Window dialogs, which feed
 -- their answers back in through `continue`)
@@ -156,6 +167,9 @@ next msg _ continue = case msg of
       Nothing -> log "rename cancelled"
   RenameTodo tid _ -> log ("renamed todo " <> show tid)
   ClearCompleted -> alert' "Cleared the completed todos." (log "cleared completed todos")
+  ToggleWatchResize -> log "toggled the resize subscription"
+  WindowResized -> log "window resized"
+
   _ -> pure unit
 
 -- view
@@ -211,6 +225,19 @@ view model =
             , hidden (completedCount model.todos == 0)
             ]
             [ text "Clear completed" ]
+        , div []
+            [ input
+                [ type_ "checkbox"
+                , id_ "watch-resize"
+                , checked model.watchingResize
+                , onChange ToggleWatchResize
+                ]
+                []
+            , label [ for "watch-resize" ] [ text "watch window.resize" ]
+            , span
+                [ style (if model.watchingResize then [] else [ color "#999" ]) ]
+                [ text (" -- " <> show model.resizes <> " resize(s) seen") ]
+            ]
         ]
     ]
 
@@ -263,8 +290,17 @@ viewFilterButton current f =
 -- entry point
 --------------
 
+-- subscriptions
+-----------------
+-- Re-run after every update, so unchecking the box below actually detaches
+-- the resize listener rather than just ignoring it.
+
+subscriptions :: Model -> Array (Subscription Msg)
+subscriptions model =
+  if model.watchingResize then [ onWindowEvent "resize" WindowResized ] else []
+
 app :: App Msg Model
-app = createApp { init, view, update, next }
+app = createApp { init, view, update, next, subscriptions }
 
 main :: Effect Unit
 main = onDocumentReady do
