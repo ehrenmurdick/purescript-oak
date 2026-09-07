@@ -181,8 +181,6 @@ type Runtime msg model
 type ActiveSub msg
   = {sub :: Subscription msg, current :: Ref.Ref msg, unsubscribe :: Effect Unit}
 
--- TODO: investigate implementing monoid for App and replace
---       state loop with foldl
 -- | Reconciles the subscriptions the app currently wants against the
 -- | listeners already attached: subscriptions that disappeared are stopped,
 -- | new ones are started, and ones that are still wanted keep their listener
@@ -221,6 +219,42 @@ startOrRetain active dispatch sub =
       unsubscribe <- Sub.attach sub (Ref.read current >>= dispatch)
       pure { sub: sub, current: current, unsubscribe: unsubscribe }
 
+-- | One turn of the loop: fold a message into `env`, paint the result, and
+-- | hand back the runtime that turn ended with. A sequence of messages can
+-- | be driven through an app by threading this, `foldM step env msgs`.
+-- |
+-- | The `Ref` is not the state being folded -- `env` is -- it is the channel
+-- | a re-entrant dispatch arrives on. A DOM listener attached during `render`
+-- | and a subscription that fires during `syncSubs` both call back into
+-- | `handler` mid-turn, so the new runtime is written before either of those
+-- | runs, and the runtime returned is re-read afterwards rather than assumed.
+step ::
+  forall msg model.
+  Eq msg =>
+  Ref.Ref (Runtime msg model) ->
+  RunningApp msg model ->
+  Runtime msg model ->
+  msg ->
+  Effect (Runtime msg model)
+step ref runningApp env msg = do
+  let (RunningApp app) = runningApp
+  let dispatch = handler ref runningApp
+  let oldTree = unsafePartial (fromJust env.tree)
+  let oldRoot = unsafePartial (fromJust env.root)
+  let newModel = app.update msg env.model
+  newTree <- render dispatch (app.view newModel)
+  newRoot <- patch newTree oldTree oldRoot
+  Ref.write { root: Just newRoot
+            , tree: Just newTree
+            , model: newModel
+            , subs: env.subs
+            } ref
+  syncSubs ref dispatch (app.subscriptions newModel)
+  Cmd.run (app.next msg newModel) dispatch
+  Ref.read ref
+
+-- | `step` on the runtime the `Ref` currently holds. This is what gets handed
+-- | to the view as its dispatch function.
 handler ::
   forall msg model.
   Eq msg =>
@@ -230,20 +264,7 @@ handler ::
   Effect Unit
 handler ref runningApp msg = do
   env <- Ref.read ref
-  let (RunningApp app) = runningApp
-  let oldTree = unsafePartial (fromJust env.tree)
-  let oldRoot = unsafePartial (fromJust env.root)
-  let newModel = app.update msg env.model
-  newTree <- render (handler ref runningApp) (app.view newModel)
-  newRoot <- patch newTree oldTree oldRoot
-  let newRuntime = { root: Just newRoot
-                   , tree: Just newTree
-                   , model: newModel
-                   , subs: env.subs
-                   }
-  Ref.write newRuntime ref
-  syncSubs ref (handler ref runningApp) (app.subscriptions newModel)
-  Cmd.run (app.next msg newModel) (handler ref runningApp)
+  _ <- step ref runningApp env msg
   mempty
 
 runApp_ :: forall msg model. Eq msg => App msg model -> Maybe msg -> Effect Node
