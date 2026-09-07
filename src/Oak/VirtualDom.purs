@@ -29,6 +29,9 @@ concatAttr ::
 concatAttr handler (EventHandler name msg) attrs = N.concatHandlerFun name (\_ ->
   handler msg) attrs
 
+concatAttr handler (PreventingEventHandler name msg) attrs = N.concatPreventingHandlerFun name (\_ ->
+  handler msg) attrs
+
 concatAttr handler (StringEventHandler name f) attrs = N.concatEventTargetValueHandlerFun name (\e ->
   handler (f e)) attrs
 

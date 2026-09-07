@@ -3,13 +3,14 @@ module Test.RouterApp (main) where
 -- A routed multi-screen app, in Hash mode so it runs straight from a
 -- file:// URL. It exercises the whole routing surface: link navigation
 -- through plain anchors, programmatic navigation from `next`, the back
--- button, a query parameter, an opted-out external link, and the entry
--- effect that fires for the initial route before anything is painted.
+-- button, a query parameter, an opted-out external link, a form that
+-- navigates without reloading, and the entry effect that fires for the
+-- initial route before anything is painted.
 
 import Oak
 
 import Oak.Css (color, fontWeight, marginRight, textDecoration)
-import Oak.Html.Attribute (href, rel, style, target)
+import Oak.Html.Attribute (href, placeholder, rel, style, target, type_, value)
 import Oak.Navigation as Nav
 import Oak.Subscription (Subscription)
 import Test.RouterRoutes (Route(..), parse, print)
@@ -17,6 +18,7 @@ import Test.RouterRoutes (Route(..), parse, print)
 import Prelude hiding (div)
 
 import Data.Array (filter, find)
+import Data.Int as Int
 import Effect (Effect)
 import Effect.Class.Console (log)
 
@@ -56,28 +58,41 @@ notes =
 type Model =
   { route :: Route
   , visits :: Int
+  , jumpTo :: String
   }
 
 data Msg
   = RouteChanged Route
   | Navigate String
   | GoBack
+  | UpdateJump String
+  | SubmitJump
 
 -- The runtime folds the real URL through `update` before the first render,
 -- so this placeholder is never actually painted.
 init :: Model
-init = { route: Home, visits: 0 }
+init = { route: Home, visits: 0, jumpTo: "" }
 
 update :: Msg -> Model -> Model
 update msg model = case msg of
-  RouteChanged route -> model { route = route, visits = model.visits + 1 }
+  -- arriving anywhere clears the jump box
+  RouteChanged route ->
+    model { route = route, visits = model.visits + 1, jumpTo = "" }
+  UpdateJump draft -> model { jumpTo = draft }
   Navigate _ -> model
   GoBack -> model
+  SubmitJump -> model
 
 next :: Msg -> Model -> (Msg -> Effect Unit) -> Effect Unit
-next msg _ _ = case msg of
+next msg model _ = case msg of
   Navigate path -> Nav.push path
   GoBack -> Nav.back
+  -- `next` sees the model as `update` left it, so the jump box has to keep
+  -- its value until after the navigation reads it.
+  SubmitJump -> case Int.fromString model.jumpTo of
+    Just n -> Nav.push (print (NoteDetail n))
+    Nothing -> Nav.push (print NotFound)
+  UpdateJump _ -> mempty
   -- An entry effect. The initial route gets this too, which is how a screen
   -- would kick off the fetch for the data it needs.
   RouteChanged route -> log ("entered " <> print route)
@@ -109,7 +124,26 @@ view model =
             , button [ onClick (Navigate (print (NoteDetail 2))) ]
                 [ text "Jump to note 2 (Nav.push)" ]
             ]
+        , jumpForm model
         ]
+    ]
+
+-- A real form, with Enter-to-submit and a submit button. `onSubmit` cancels
+-- the browser's own submission, so this navigates like anything else rather
+-- than reloading the page and throwing the model away -- watch the counter
+-- above keep climbing.
+jumpForm :: Model -> Html Msg
+jumpForm model =
+  form [ onSubmit SubmitJump ]
+    [ input
+        [ type_ "text"
+        , value model.jumpTo
+        , placeholder "note number"
+        , onInput UpdateJump
+        , style [ marginRight "0.5rem" ]
+        ]
+        []
+    , button [ type_ "submit" ] [ text "Jump (form submit)" ]
     ]
 
 navBar :: Route -> Html Msg

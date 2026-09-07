@@ -274,8 +274,23 @@ onStorage :: ∀ msg.  msg -> Attribute msg
 onStorage msg = EventHandler "onstorage" msg
 
 
+-- | Handle a form submission, and stop the browser submitting the form.
+-- |
+-- | The default action is cancelled, so the page does not reload and the
+-- | model survives. A form is then just a nicer way to get Enter-to-submit
+-- | and a real submit button:
+-- |
+-- | ```purescript
+-- | form [ onSubmit AddTodo ]
+-- |   [ input [ value model.draft, onInput UpdateDraft ] []
+-- |   , button [ type_ "submit" ] [ text "Add" ]
+-- |   ]
+-- | ```
+-- |
+-- | To let a form submit to the server the ordinary way, leave `onSubmit`
+-- | off it entirely.
 onSubmit :: ∀ msg.  msg -> Attribute msg
-onSubmit msg = EventHandler "onsubmit" msg
+onSubmit msg = PreventingEventHandler "onsubmit" msg
 
 
 onSuspend :: ∀ msg.  msg -> Attribute msg

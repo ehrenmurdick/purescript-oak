@@ -55,6 +55,16 @@ concatHandlerFun ::
   NativeAttrs
 concatHandlerFun = runFn3 concatHandlerFunImpl
 
+foreign import concatPreventingHandlerFunImpl :: forall eff event. Fn3 String (event -> eff) NativeAttrs NativeAttrs
+
+concatPreventingHandlerFun ::
+  forall eff event.
+  String ->
+  (event -> eff) ->
+  NativeAttrs ->
+  NativeAttrs
+concatPreventingHandlerFun = runFn3 concatPreventingHandlerFunImpl
+
 foreign import concatEventTargetValueHandlerFunImpl :: forall eff event. Fn3 String (event -> eff) NativeAttrs NativeAttrs
 
 concatEventTargetValueHandlerFun ::

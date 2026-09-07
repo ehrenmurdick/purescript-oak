@@ -31,6 +31,10 @@ data Attribute msg
   | ForcedBoolean String Boolean
   | ForcedString String String
   | KeyPressEventHandler String (KeyPressEvent -> msg)
+  -- | An event handler that cancels the browser's default action before
+  -- | dispatching, for events whose default would otherwise undo the app --
+  -- | a form submit reloading the page, say. See `Oak.Html.Events.onSubmit`.
+  | PreventingEventHandler String msg
   | SimpleAttribute String String
   | StringEventHandler String (String -> msg)
   | Style (Array StyleAttribute)
@@ -42,6 +46,7 @@ instance attributeFunctor :: Functor Attribute where
       StringEventHandler n ctor -> StringEventHandler n (ctor >>> f)
       EventHandler n msg -> EventHandler n (f msg)
       KeyPressEventHandler n ctor -> KeyPressEventHandler n (ctor >>> f)
+      PreventingEventHandler n msg -> PreventingEventHandler n (f msg)
       BooleanAttribute n bool -> BooleanAttribute n bool
       ForcedBoolean n bool -> ForcedBoolean n bool
       ForcedString n val -> ForcedString n val

@@ -49,6 +49,24 @@ export function concatHandlerFunImpl(name, msgHandler, rest) {
   return result;
 }
 
+// foreign import concatPreventingHandlerFunImpl :: ∀ eff event.
+//   Fn3 String (event -> eff) NativeAttrs NativeAttrs
+//
+// Same as concatHandlerFunImpl, but cancels the browser's default action
+// first. This is what makes onSubmit usable: without it a form dispatches
+// its message and then reloads the page out from under the app that just
+// handled it.
+export function concatPreventingHandlerFunImpl(name, msgHandler, rest) {
+  var result = Object.assign({}, rest);
+  result[name] = function (event) {
+    if (event && typeof event.preventDefault === "function") {
+      event.preventDefault();
+    }
+    msgHandler(event)();
+  };
+  return result;
+}
+
 // foreign import concatEventTargetValueHandlerFunImpl :: ∀ eff event.
 //   Fn3 String (event -> eff) NativeAttrs NativeAttrs
 export function concatEventTargetValueHandlerFunImpl(name, msgHandler, rest) {
