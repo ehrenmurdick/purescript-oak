@@ -13,6 +13,7 @@ src/Main.purs
 index.html
 !test/index.html
 app.js
+/test/router.js
 example/
 style.css
 .spago

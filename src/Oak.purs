@@ -4,9 +4,11 @@ module Oak
   , module Oak.Document
   , module Oak.Html
   , module Oak.Html.Events
+  , module Oak.Route
   , module Oak.Window
   , App
   , createApp
+  , createRoutedApp
   , runApp
   , unwrapApp
   ) where
@@ -111,6 +113,8 @@ import Oak.Html.Events
   , onWaiting
   , onWheel
   )
+import Oak.Navigation as Nav
+import Oak.Route (Mode(..), QueryParam, Url, parseUrl, queryParam)
 import Oak.Subscription (Subscription)
 import Oak.Subscription as Sub
 import Oak.VirtualDom (patch, render)
@@ -121,7 +125,14 @@ import Prelude (bind, discard, map, not, pure, Unit, unit, (==), (>>=))
 import Oak.VirtualDom.Native as N
 
 data App msg model
-  = App {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg}
+  = App {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg, router :: Maybe (Router msg)}
+
+-- | What the runtime needs in order to route: which half of the URL carries
+-- | the route, and how to turn a URL into a message the app understands.
+-- | `onNavigate` closes over the app's own parser, which is why the route
+-- | type never appears in `App`'s signature.
+type Router msg
+  = {mode :: Mode, onNavigate :: Url -> msg}
 
 data RunningApp msg model
   = RunningApp {update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg}
@@ -169,13 +180,59 @@ createApp opts = App { init: opts.init
                      , next: opts.next
                      , subscriptions: opts.subscriptions
                      , update: opts.update
+                     , router: Nothing
                      }
+
+-- | Like `createApp`, but the app's screen is decided by the URL.
+-- |
+-- | Two fields on top of the usual five:
+-- |
+-- |
+-- | `mode`:
+-- |
+-- | `Hash` keeps the route in the fragment and works anywhere, including
+-- | from a `file://` URL. `Path` uses real paths, and needs the server to
+-- | serve the app for every route.
+-- |
+-- |
+-- | `onNavigate`:
+-- |
+-- | Turns a URL into a message, and is where your own route parser gets in:
+-- | `\url -> RouteChanged (parse url)`. The runtime calls it for the
+-- | initial URL before the first render, and again for every later
+-- | navigation -- a link click, a `Oak.Navigation.push`, the back button.
+-- | To the rest of the app a navigation is just another message.
+-- |
+-- | ```purescript
+-- | app :: App Msg Model
+-- | app = createRoutedApp
+-- |   { init, view, update, next, subscriptions
+-- |   , mode: Hash
+-- |   , onNavigate: \url -> RouteChanged (parse url)
+-- |   }
+-- | ```
+createRoutedApp ::
+  forall msg model.
+  {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg, mode :: Mode, onNavigate :: Url -> msg} ->
+  App msg model
+createRoutedApp opts = App { init: opts.init
+                           , view: opts.view
+                           , next: opts.next
+                           , subscriptions: opts.subscriptions
+                           , update: opts.update
+                           , router: Just { mode: opts.mode, onNavigate: opts.onNavigate }
+                           }
 
 unwrapApp ::
   forall msg model.
   App msg model ->
   {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg}
-unwrapApp (App app) = app
+unwrapApp (App app) = { init: app.init
+                      , view: app.view
+                      , next: app.next
+                      , subscriptions: app.subscriptions
+                      , update: app.update
+                      }
 
 -- | Kicks off the running app, and returns an effect
 -- | containing the root node of the app, which can
@@ -186,8 +243,8 @@ runApp ::
   App msg model ->
   Maybe msg ->
   Effect Node
-runApp msg app = do
-  runApp_ msg app
+runApp app initialMsg = do
+  runApp_ app initialMsg
 
 type Runtime msg model
   = {tree :: Maybe N.Tree, root :: Maybe Node, model :: model, subs :: Array (ActiveSub msg)}
@@ -201,9 +258,6 @@ type ActiveSub msg
 
 -- TODO: investigate implementing monoid for App and replace
 --       state loop with foldl
--- TODO: decouple rendering from app event loop to facilitate
---       different rendering backends
-
 -- | Reconciles the subscriptions the app currently wants against the
 -- | listeners already attached: subscriptions that disappeared are stopped,
 -- | new ones are started, and ones that are still wanted keep their listener
@@ -272,13 +326,42 @@ runApp_ (App app) msg = do
                    , subscriptions: app.subscriptions
                    , update: app.update
                    }
-  let initialModel = app.init
+  -- A routed app's first screen is decided by the URL, and reading the URL
+  -- is an effect while `init` is a pure value. The route is folded through
+  -- `update` before the first render rather than dispatched as a message
+  -- after it, so the initial paint is already the right screen instead of a
+  -- flash of whatever `init` happened to say.
+  initialNav <- initialNavMsg (App app)
+  let initialModel = case initialNav of
+        Just navMsg -> app.update navMsg app.init
+        Nothing -> app.init
   ref <- Ref.new { tree: Nothing, root: Nothing, model: initialModel, subs: [] }
   tree <- render (handler ref (RunningApp runningApp)) (runningApp.view initialModel)
   let rootNode = (N.createRootNode tree)
   _ <- Ref.write { tree: Just tree, root: Just rootNode, model: initialModel, subs: [] } ref
   syncSubs ref (handler ref (RunningApp runningApp)) (app.subscriptions initialModel)
+  -- Listeners go up before `next` runs, not after: a screen whose entry
+  -- command navigates would otherwise push a URL nothing is listening for.
+  case app.router of
+    Just router ->
+      Nav.start router.mode \raw ->
+        handler ref (RunningApp runningApp) (router.onNavigate (parseUrl router.mode raw))
+    Nothing -> pure unit
+  -- The initial route gets its `next` like any other message, so a screen
+  -- can kick off its entry fetch without a special case in the app.
+  case initialNav of
+    Just navMsg -> app.next navMsg initialModel (handler ref (RunningApp runningApp))
+    Nothing -> pure unit
   case msg of
     (Just m) -> handler ref (RunningApp runningApp) m
     Nothing -> pure unit
   pure rootNode
+
+-- | The message a routed app should be holding by the time it first renders.
+-- | `Nothing` for an app built with `createApp`, which never looks at the URL.
+initialNavMsg :: forall msg model. App msg model -> Effect (Maybe msg)
+initialNavMsg (App app) = case app.router of
+  Nothing -> pure Nothing
+  Just router -> do
+    raw <- Nav.currentUrl
+    pure (Just (router.onNavigate (parseUrl router.mode raw)))

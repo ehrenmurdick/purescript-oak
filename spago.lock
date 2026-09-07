@@ -16,14 +16,17 @@
             "partial",
             "prelude",
             "refs",
-            "simple-json"
+            "simple-json",
+            "strings"
           ]
         },
         "test": {
           "dependencies": [
             "arrays",
             "console",
-            "effect"
+            "effect",
+            "exceptions",
+            "integers"
           ]
         }
       }

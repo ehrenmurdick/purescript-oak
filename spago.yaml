@@ -13,12 +13,15 @@ package:
     - prelude
     - refs
     - simple-json
+    - strings
   test:
     main: Test.Main
     dependencies:
       - arrays
       - console
       - effect
+      - exceptions
+      - integers
 workspace:
   packageSet:
     registry: 80.8.1
