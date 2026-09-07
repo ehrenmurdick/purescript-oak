@@ -3,13 +3,16 @@ module Test.TodoApp (main) where
 -- This app exists to exercise Oak end-to-end: every Attribute constructor
 -- (SimpleAttribute, BooleanAttribute, DataAttribute, Style, EventHandler,
 -- StringEventHandler, KeyPressEventHandler), a spread of Html tags, the
--- Oak.Css style helpers, the Either/Maybe re-exports, the `next` command
--- pattern, Oak.Window's native dialogs, Oak.Subscription's window events
+-- Oak.Css style helpers, the Either/Maybe re-exports, Oak.Cmd's commands,
+-- Oak.Window's native dialogs, Oak.Subscription's window events
 -- and timers, Oak.Storage's JSON persistence, and Oak.Document's ready/mount
 -- lifecycle -- wired up as a working todo list.
 
-import Oak hiding (data_)
-import Oak.Storage as Storage
+import Oak hiding (alert, alert', confirm, prompt, prompt', data_)
+import Oak.Cmd (Cmd)
+import Oak.Cmd as Cmd
+import Oak.Storage.Cmd as Storage
+import Oak.Window.Cmd as Window
 import Oak.Subscription (Subscription, onInterval, onTimeout, onWindowEvent)
 import Oak.Css (color, fontWeight, textDecoration)
 import Oak.Html.Attribute
@@ -85,7 +88,13 @@ data Msg
   | Blink
   | DismissNotice
   | Load
-  | Loaded (Array Todo)
+  | Loaded (Maybe (Array Todo))
+  | Saved
+  | SaveFailed
+  | DeleteCancelled
+  | RenameCancelled
+  | RenameRejected
+  | ClearedAcknowledged
 
 -- | Only needed because this app starts timers: `onInterval` and `onTimeout`
 -- | tell two timers of the same duration apart by their messages.
@@ -177,59 +186,78 @@ update msg model = case msg of
   Blink -> model { blink = not model.blink }
   DismissNotice -> model { notice = Nothing }
   Load -> model
-  Loaded todos -> model
+  Loaded Nothing -> model
+  Loaded (Just todos) -> model
     { todos = todos
     , nextId = fromMaybe 0 (maximum (map _.id todos)) + 1
     }
+  -- the outcomes of a write and of the dialogs: nothing to keep, they exist
+  -- so that `next` has something to report on
+  Saved -> model
+  SaveFailed -> model
+  DeleteCancelled -> model
+  RenameCancelled -> model
+  RenameRejected -> model
+  ClearedAcknowledged -> model
 
--- next (command pattern -- persistence, logging, and the Oak.Window dialogs,
--- which feed their answers back in through `continue`)
+-- next (commands -- persistence, logging, and the Oak.Window dialogs, whose
+-- answers come back as messages of their own)
 ------------------------------------------------------------------------
 
 todosKey :: String
 todosKey = "oak.todos"
 
-next :: Msg -> Model -> (Msg -> Effect Unit) -> Effect Unit
-next msg model continue = case msg of
+next :: Msg -> Model -> Cmd Msg
+next msg model = case msg of
   -- the boot message: it reads storage rather than writing to it, so it must
   -- not fall through to the save below
-  Load -> do
-    stored <- Storage.get Storage.localStorage todosKey
-    case stored of
-      Just todos -> continue (Loaded todos)
-      Nothing -> log "no saved todos, starting from the defaults"
+  Load -> Storage.get Storage.localStorage todosKey Loaded
+  Loaded Nothing -> Cmd.effect (log "no saved todos, starting from the defaults")
+  Loaded (Just _) -> Cmd.none
   -- the clock and its toast change nothing worth keeping, and a write a
   -- second is a rude thing to do to localStorage
-  Tick -> pure unit
-  Blink -> pure unit
-  DismissNotice -> pure unit
-  _ -> do
-    announce msg continue
-    saved <- Storage.set Storage.localStorage todosKey model.todos
-    if saved then pure unit else log "could not save todos"
+  Tick -> Cmd.none
+  Blink -> Cmd.none
+  DismissNotice -> Cmd.none
+  -- the answers to a save and to the dialogs. They are matched here rather
+  -- than left to the fallthrough for a reason: a save that reported itself
+  -- into the save branch would save again, forever.
+  Saved -> Cmd.none
+  SaveFailed -> Cmd.effect (log "could not save todos")
+  DeleteCancelled -> Cmd.effect (log "delete cancelled")
+  RenameCancelled -> Cmd.effect (log "rename cancelled")
+  RenameRejected -> Window.alert "A todo can't be empty."
+  ClearedAcknowledged -> Cmd.effect (log "cleared completed todos")
+  _ -> announce msg <> save model.todos
 
--- | The logging/dialog half of `next`, split out so every message can fall
--- | through to the save above.
-announce :: Msg -> (Msg -> Effect Unit) -> Effect Unit
-announce msg continue = case msg of
-  AddTodo -> log "added a todo (button)"
-  DraftKeyDown code | code == 13 -> log "added a todo (enter key)"
+-- | Write the list, and say so if the write was refused.
+save :: Array Todo -> Cmd Msg
+save todos =
+  Storage.set' Storage.localStorage todosKey todos \saved ->
+    if saved then Saved else SaveFailed
+
+-- | The logging/dialog half of `next`, split out so every message can be
+-- | combined with the save above.
+announce :: Msg -> Cmd Msg
+announce msg = case msg of
+  AddTodo -> Cmd.effect (log "added a todo (button)")
+  DraftKeyDown code | code == 13 -> Cmd.effect (log "added a todo (enter key)")
   AskDeleteTodo tid ->
-    confirm "Delete this todo?" \ok ->
-      if ok then continue (DeleteTodo tid) else log "delete cancelled"
-  DeleteTodo tid -> log ("deleted todo " <> show tid)
+    Window.confirm "Delete this todo?" \ok ->
+      if ok then DeleteTodo tid else DeleteCancelled
+  DeleteTodo tid -> Cmd.effect (log ("deleted todo " <> show tid))
   AskRenameTodo tid currentText ->
-    prompt' "Rename this todo:" currentText case _ of
-      Just t | t /= "" -> continue (RenameTodo tid t)
-      Just _ -> alert "A todo can't be empty."
-      Nothing -> log "rename cancelled"
-  RenameTodo tid _ -> log ("renamed todo " <> show tid)
-  ClearCompleted -> alert' "Cleared the completed todos." (log "cleared completed todos")
-  ToggleWatchResize -> log "toggled the resize subscription"
-  WindowResized -> log "window resized"
-  ToggleTicking -> log "toggled the clock subscription"
+    Window.prompt' "Rename this todo:" currentText case _ of
+      Just t | t /= "" -> RenameTodo tid t
+      Just _ -> RenameRejected
+      Nothing -> RenameCancelled
+  RenameTodo tid _ -> Cmd.effect (log ("renamed todo " <> show tid))
+  ClearCompleted -> Window.alert' "Cleared the completed todos." ClearedAcknowledged
+  ToggleWatchResize -> Cmd.effect (log "toggled the resize subscription")
+  WindowResized -> Cmd.effect (log "window resized")
+  ToggleTicking -> Cmd.effect (log "toggled the clock subscription")
 
-  _ -> pure unit
+  _ -> Cmd.none
 
 -- view
 -------

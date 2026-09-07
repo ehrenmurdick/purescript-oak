@@ -81,6 +81,7 @@ to see some examples of how to do common tasks.
 module Main (main) where
 
 import Oak
+import Oak.Cmd (Cmd)
 import Oak.Subscription (Subscription)
 
 import Prelude hiding (div)
@@ -108,8 +109,9 @@ view model = div []
       ]
   ]
 
-next :: Msg -> Model -> (Msg -> Effect Unit) -> Effect Unit
-next msg mod h = mempty
+-- this app has nothing for the runtime to do
+next :: Msg -> Model -> Cmd Msg
+next msg mod = mempty
 
 update :: Msg -> Model -> Model
 update msg model = case msg of
@@ -133,6 +135,61 @@ main = do
   appendChildNode container rootNode
 ```
 
+### Commands
+
+`update` is pure, so anything that touches the world outside the model --
+storage, a request, a dialog, a navigation -- happens in `next`, which takes
+the message that just arrived and the model `update` produced, and returns a
+`Cmd Msg` for the runtime to run:
+
+```purescript
+import Oak.Cmd (Cmd)
+import Oak.Cmd as Cmd
+import Oak.Storage.Cmd as Storage
+
+next :: Msg -> Model -> Cmd Msg
+next msg model = case msg of
+  Load       -> Storage.get Storage.localStorage "todos" Loaded
+  AddTodo    -> Storage.set Storage.localStorage "todos" model.todos
+  _          -> Cmd.none
+```
+
+A command may produce a message of its own -- `Storage.get` above sends
+`Loaded` with whatever it found -- and that message goes back through
+`update` like any other. Commands are values: `Cmd.none` does nothing, and
+`<>` or `Cmd.batch` runs several.
+
+Most commands come from a wrapper module rather than being built by hand:
+
+| Module | For |
+| --- | --- |
+| `Oak.Storage.Cmd` | reading and writing `localStorage` / `sessionStorage` |
+| `Oak.Window.Cmd` | the native `alert`, `confirm` and `prompt` dialogs |
+| `Oak.Navigation.Cmd` | `push`, `replace`, `back`, `forward`, `load` |
+| `Oak.Cmd.Aff` | running an `Aff` -- an HTTP request, anything async |
+
+Each of these is a thin layer over the plain `Effect` module of the same
+name, which is still there if you would rather call it directly. To wrap an
+effect of your own, `Oak.Cmd` has the pieces:
+
+```purescript
+Cmd.effect (log "saved")                    -- no message comes back
+Cmd.perform (Storage.keys store <#> Found)  -- an Effect that produces one
+Cmd.ask (Window.confirm "Sure?") \ok ->     -- a callback-style effect
+  if ok then Delete else Cancelled
+Cmd.dispatch Refresh                        -- just send a message
+```
+
+Anything a dialog or a request can answer with has to be a message, cancels
+and failures included -- that is what keeps `update` the only place the model
+changes. `Cmd.callback` is the escape hatch when a command really does need
+the dispatcher itself.
+
+Commands are for one-off work that follows from a message. For a continuous
+stream of outside events -- timers, window events -- use
+`Oak.Subscription` instead, which is driven by the model rather than by a
+message.
+
 ### Routing
 
 Oak can put your app's screens on real URLs, so they can be bookmarked,
@@ -142,7 +199,6 @@ fields:
 
 ```purescript
 import Oak
-import Oak.Navigation as Nav
 import Data.Int as Int
 
 data Route = Home | Notes | Note Int | NotFound
@@ -194,12 +250,14 @@ back.
 To navigate from code, call `Oak.Navigation` from `next`:
 
 ```purescript
-next msg _ _ = case msg of
+import Oak.Navigation.Cmd as Nav
+
+next msg _ = case msg of
   Save         -> Nav.push (print Notes)      -- adds a history entry
   Redirect     -> Nav.replace (print Home)    -- rewrites the current one
   Cancel       -> Nav.back
   LogOut       -> Nav.load "/goodbye"         -- leaves the app entirely
-  _            -> mempty
+  _            -> Cmd.none
 ```
 
 Paths are always written the way your app thinks of them -- `"/notes/42"`,

@@ -9,9 +9,11 @@ module Test.RouterApp (main) where
 
 import Oak
 
+import Oak.Cmd (Cmd)
+import Oak.Cmd as Cmd
 import Oak.Css (color, fontWeight, marginRight, textDecoration)
 import Oak.Html.Attribute (href, placeholder, rel, style, target, type_, value)
-import Oak.Navigation as Nav
+import Oak.Navigation.Cmd as Nav
 import Oak.Subscription (Subscription)
 import Test.RouterRoutes (Route(..), parse, print)
 
@@ -85,19 +87,19 @@ update msg model = case msg of
   GoBack -> model
   SubmitJump -> model
 
-next :: Msg -> Model -> (Msg -> Effect Unit) -> Effect Unit
-next msg model _ = case msg of
+next :: Msg -> Model -> Cmd Msg
+next msg model = case msg of
   Navigate path -> Nav.push path
   GoBack -> Nav.back
   -- `next` sees the model as `update` left it, so the jump box has to keep
   -- its value until after the navigation reads it.
-  SubmitJump -> case Int.fromString model.jumpTo of
-    Just n -> Nav.push (print (NoteDetail n))
-    Nothing -> Nav.push (print NotFound)
-  UpdateJump _ -> mempty
-  -- An entry effect. The initial route gets this too, which is how a screen
+  SubmitJump -> Nav.push case Int.fromString model.jumpTo of
+    Just n -> print (NoteDetail n)
+    Nothing -> print NotFound
+  UpdateJump _ -> Cmd.none
+  -- An entry command. The initial route gets this too, which is how a screen
   -- would kick off the fetch for the data it needs.
-  RouteChanged route -> log ("entered " <> print route)
+  RouteChanged route -> Cmd.effect (log ("entered " <> print route))
 
 -- this app listens to nothing outside its own view
 subscriptions :: Model -> Array (Subscription Msg)

@@ -1,15 +1,18 @@
 module Oak.Examples.FetchJson where
 
--- spago install fetch simple-json aff
+-- spago install fetch
 
 import Effect (Effect)
-import Effect.Aff (Aff, Error, never, runAff_)
+import Effect.Aff (Aff, Error, never)
 import Effect.Exception (message) as Exception
 import Effect.Class (liftEffect)
 import Effect.Console (logShow)
 import Fetch as F
 
 import Oak
+import Oak.Cmd (Cmd)
+import Oak.Cmd as Cmd
+import Oak.Cmd.Aff as Aff
 import Oak.Subscription (Subscription)
 import Oak.Html.Attribute (for, id_)
 import Simple.JSON as JSON
@@ -51,19 +54,16 @@ view model = div []
   , div [] [ button [ onClick GoGet ] [ text "Perform GET" ] ]
   ]
 
--- the continue function expects a Msg, but runAff_ will call its callback with
--- Either Error a.
--- Recall that the type of the Got msg is
+-- `Aff.attempt` runs the request and hands its outcome to the tagger it is
+-- given. The type of the Got msg is
 -- Either Error User -> Msg,
--- so we can just compose that with continue to get:
--- Either Error User -> Effect Unit
--- which is what runAff_ expects.
-next :: Msg -> Model -> (Msg -> Effect Unit) -> Effect Unit
-next GoGet _ continue = runAff_ (Got >>> continue) do
+-- which is exactly the tagger `attempt` wants, so it goes in as-is.
+next :: Msg -> Model -> Cmd Msg
+next GoGet _ = Aff.attempt Got do
   (user :: User) <-
     getJson "https://jsonplaceholder.typicode.com/users//1"
   pure user
-next _ _ _ = mempty
+next _ _ = Cmd.none
 
 update :: Msg -> Model -> Model
 update msg model = case msg of

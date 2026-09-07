@@ -4,6 +4,7 @@ module Examples.Counter (main) where
 -- this is the example app featured in the README
 
 import Oak
+import Oak.Cmd (Cmd)
 import Oak.Subscription (Subscription)
 
 import Prelude hiding (div)
@@ -32,8 +33,9 @@ view model = div []
       ]
   ]
 
-next :: Msg -> Model -> (Msg -> Effect Unit) -> Effect Unit
-next msg mod h = mempty
+-- this app has nothing for the runtime to do
+next :: Msg -> Model -> Cmd Msg
+next msg mod = mempty
 
 update :: Msg -> Model -> Model
 update msg model = case msg of

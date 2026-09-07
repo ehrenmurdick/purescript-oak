@@ -1,6 +1,7 @@
 package:
   name: oak
   dependencies:
+    - aff
     - arrays
     - console
     - effect

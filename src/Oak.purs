@@ -23,6 +23,8 @@ import Data.Monoid (mempty)
 import Data.Traversable (traverse)
 import Effect (Effect)
 import Effect.Ref (Ref, new, read, write) as Ref
+import Oak.Cmd (Cmd)
+import Oak.Cmd as Cmd
 import Oak.Document (Element, Node, appendChildNode, getElementById, onDocumentReady)
 import Oak.Html.Events (onAbort, onAfterprint, onBeforeprint, onBeforeunload, onBlur, onCanplay, onCanplaythrough, onChange, onClick, onContextmenu, onCopy, onCuechange, onCut, onDblclick, onDrag, onDragend, onDragenter, onDragleave, onDragover, onDragstart, onDrop, onDurationchange, onEmptied, onEnded, onError, onFocus, onHashchange, onInput, onInvalid, onKeydown, onKeypress, onKeyup, onLoad, onLoadeddata, onLoadedmetadata, onLoadstart, onMousedown, onMousemove, onMouseout, onMouseover, onMouseup, onMousewheel, onOffline, onOnline, onPagehide, onPageshow, onPaste, onPause, onPlay, onPlaying, onPopstate, onProgress, onRatechange, onReset, onResize, onScroll, onSearch, onSeeked, onSeeking, onSelect, onStalled, onStorage, onSubmit, onSuspend, onTimeupdate, onToggle, onUnload, onVolumechange, onWaiting, onWheel)
 import Oak.Navigation as Nav
@@ -37,7 +39,7 @@ import Prelude (class Eq, bind, discard, not, pure, Unit, unit, (>>=))
 import Prim.Boolean (True)
 
 data App msg model
-  = App {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg, router :: Maybe (Router msg)}
+  = App {init :: model, update :: msg -> model -> model, next :: msg -> model -> Cmd msg, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg, router :: Maybe (Router msg)}
 
 -- | What the runtime needs in order to route: which half of the URL carries
 -- | the route, and how to turn a URL into a message the app understands.
@@ -47,7 +49,7 @@ type Router msg
   = {mode :: Mode, onNavigate :: Url -> msg}
 
 data RunningApp msg model
-  = RunningApp {update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg}
+  = RunningApp {update :: msg -> model -> model, next :: msg -> model -> Cmd msg, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg}
 
 -- | createApp takes a record with a description of your Oak app.
 -- | It has a few parts:
@@ -65,10 +67,12 @@ data RunningApp msg model
 -- |
 -- | `next`:
 -- |
--- | This function takes a message and model and returns a command. For example,
--- | for sending an Http request when a user clicks a button. `next` would be
--- | called with the button click message and would return an `Oak.Cmd` that
--- | will execute the request.
+-- | Takes an incoming message and the model `update` just produced, and
+-- | returns a command for the runtime to run -- an Http request to send when
+-- | a user clicks a button, a value to write to storage, a navigation. A
+-- | command may produce a message of its own, which comes back through
+-- | `update` like any other. Return `Cmd.none` for the messages that need
+-- | nothing done. See `Oak.Cmd`.
 -- |
 -- |
 -- | `update`:
@@ -85,7 +89,7 @@ data RunningApp msg model
 -- | Return `[]` to subscribe to nothing. See `Oak.Subscription`.
 createApp ::
   forall msg model.
-  {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg} ->
+  {init :: model, update :: msg -> model -> model, next :: msg -> model -> Cmd msg, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg} ->
   App msg model
 createApp opts = App { init: opts.init
                      , view: opts.view
@@ -125,7 +129,7 @@ createApp opts = App { init: opts.init
 -- | ```
 createRoutedApp ::
   forall msg model.
-  {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg, mode :: Mode, onNavigate :: Url -> msg} ->
+  {init :: model, update :: msg -> model -> model, next :: msg -> model -> Cmd msg, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg, mode :: Mode, onNavigate :: Url -> msg} ->
   App msg model
 createRoutedApp opts = App { init: opts.init
                            , view: opts.view
@@ -138,7 +142,7 @@ createRoutedApp opts = App { init: opts.init
 unwrapApp ::
   forall msg model.
   App msg model ->
-  {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg}
+  {init :: model, update :: msg -> model -> model, next :: msg -> model -> Cmd msg, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg}
 unwrapApp (App app) = { init: app.init
                       , view: app.view
                       , next: app.next
@@ -239,7 +243,7 @@ handler ref runningApp msg = do
                    }
   Ref.write newRuntime ref
   syncSubs ref (handler ref runningApp) (app.subscriptions newModel)
-  app.next msg newModel (handler ref runningApp)
+  Cmd.run (app.next msg newModel) (handler ref runningApp)
   mempty
 
 runApp_ :: forall msg model. Eq msg => App msg model -> Maybe msg -> Effect Node
@@ -273,7 +277,7 @@ runApp_ (App app) msg = do
   -- The initial route gets its `next` like any other message, so a screen
   -- can kick off its entry fetch without a special case in the app.
   case initialNav of
-    Just navMsg -> app.next navMsg initialModel (handler ref (RunningApp runningApp))
+    Just navMsg -> Cmd.run (app.next navMsg initialModel) (handler ref (RunningApp runningApp))
     Nothing -> pure unit
   case msg of
     (Just m) -> handler ref (RunningApp runningApp) m
