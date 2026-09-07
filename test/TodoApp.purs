@@ -4,13 +4,13 @@ module Test.TodoApp (main) where
 -- (SimpleAttribute, BooleanAttribute, DataAttribute, Style, EventHandler,
 -- StringEventHandler, KeyPressEventHandler), a spread of Html tags, the
 -- Oak.Css style helpers, the Either/Maybe re-exports, the `next` command
--- pattern, Oak.Window's native dialogs, Oak.Subscription's window events,
--- Oak.Storage's JSON persistence, and Oak.Document's ready/mount lifecycle
--- -- wired up as a working todo list.
+-- pattern, Oak.Window's native dialogs, Oak.Subscription's window events
+-- and timers, Oak.Storage's JSON persistence, and Oak.Document's ready/mount
+-- lifecycle -- wired up as a working todo list.
 
 import Oak hiding (data_)
 import Oak.Storage as Storage
-import Oak.Subscription (Subscription, onWindowEvent)
+import Oak.Subscription (Subscription, onInterval, onTimeout, onWindowEvent)
 import Oak.Css (color, fontWeight, textDecoration)
 import Oak.Html.Attribute
   ( KeyPressEvent
@@ -56,6 +56,10 @@ type Model =
   , filter :: Filter
   , watchingResize :: Boolean
   , resizes :: Int
+  , ticking :: Boolean
+  , ticks :: Int
+  , blink :: Boolean
+  , notice :: Maybe String
   }
 
 data Msg
@@ -76,8 +80,16 @@ data Msg
   | ClearCompleted
   | ToggleWatchResize
   | WindowResized
+  | ToggleTicking
+  | Tick
+  | Blink
+  | DismissNotice
   | Load
   | Loaded (Array Todo)
+
+-- | Only needed because this app starts timers: `onInterval` and `onTimeout`
+-- | tell two timers of the same duration apart by their messages.
+derive instance eqMsg :: Eq Msg
 
 -- model
 --------
@@ -96,6 +108,10 @@ init =
   , filter: All
   , watchingResize: true
   , resizes: 0
+  , ticking: false
+  , ticks: 0
+  , blink: false
+  , notice: Nothing
   }
 
 -- update
@@ -136,7 +152,10 @@ update msg model = case msg of
     { todos = map (\t -> if t.id == tid then t { completed = not t.completed } else t) model.todos
     }
   AskDeleteTodo _ -> model
-  DeleteTodo tid -> model { todos = filter (\t -> t.id /= tid) model.todos }
+  DeleteTodo tid -> model
+    { todos = filter (\t -> t.id /= tid) model.todos
+    , notice = Just ("Deleted todo " <> show tid)
+    }
   AskRenameTodo _ _ -> model
   RenameTodo tid t -> model
     { todos = map (\td -> if td.id == tid then td { text = t } else td) model.todos
@@ -153,6 +172,10 @@ update msg model = case msg of
   ClearCompleted -> model { todos = filter (not <<< _.completed) model.todos }
   ToggleWatchResize -> model { watchingResize = not model.watchingResize }
   WindowResized -> model { resizes = model.resizes + 1 }
+  ToggleTicking -> model { ticking = not model.ticking }
+  Tick -> model { ticks = model.ticks + 1 }
+  Blink -> model { blink = not model.blink }
+  DismissNotice -> model { notice = Nothing }
   Load -> model
   Loaded todos -> model
     { todos = todos
@@ -175,6 +198,11 @@ next msg model continue = case msg of
     case stored of
       Just todos -> continue (Loaded todos)
       Nothing -> log "no saved todos, starting from the defaults"
+  -- the clock and its toast change nothing worth keeping, and a write a
+  -- second is a rude thing to do to localStorage
+  Tick -> pure unit
+  Blink -> pure unit
+  DismissNotice -> pure unit
   _ -> do
     announce msg continue
     saved <- Storage.set Storage.localStorage todosKey model.todos
@@ -199,6 +227,7 @@ announce msg continue = case msg of
   ClearCompleted -> alert' "Cleared the completed todos." (log "cleared completed todos")
   ToggleWatchResize -> log "toggled the resize subscription"
   WindowResized -> log "window resized"
+  ToggleTicking -> log "toggled the clock subscription"
 
   _ -> pure unit
 
@@ -268,8 +297,38 @@ view model =
                 [ style (if model.watchingResize then [] else [ color "#999" ]) ]
                 [ text (" -- " <> show model.resizes <> " resize(s) seen") ]
             ]
+        , div []
+            [ input
+                [ type_ "checkbox"
+                , id_ "run-clock"
+                , checked model.ticking
+                , onChange ToggleTicking
+                ]
+                []
+            , label [ for "run-clock" ] [ text "tick once a second" ]
+            , span
+                [ style (if model.ticking then [] else [ color "#999" ]) ]
+                [ text (" -- " <> show model.ticks <> " tick(s)") ]
+            -- driven by a second interval on the same 1s period as Tick: same
+            -- duration, different message, so they are two separate timers
+            , span [] [ text (if model.ticking && model.blink then " *" else "") ]
+            ]
         ]
+    , viewNotice model.notice
     ]
+
+-- | A toast that clears itself: `subscriptions` asks for a one-shot timer
+-- | while a notice is showing and stops asking once `DismissNotice` has
+-- | emptied it, which is also what lets the next delete arm a fresh one.
+viewNotice :: Maybe String -> Html Msg
+viewNotice notice = case notice of
+  Nothing -> div [ hidden true ] []
+  Just msg ->
+    div
+      [ className "notice", style [ color "#666" ] ]
+      [ text msg
+      , button [ onClick DismissNotice ] [ text "x" ]
+      ]
 
 viewTodo :: Maybe Int -> String -> Todo -> Html Msg
 viewTodo editing editText todo =
@@ -324,12 +383,18 @@ viewFilterButton current f =
 
 -- subscriptions
 -----------------
--- Re-run after every update, so unchecking the box below actually detaches
--- the resize listener rather than just ignoring it.
+-- Re-run after every update, so unchecking a box below actually detaches the
+-- resize listener or clears the interval, rather than just ignoring them.
+-- The timeout is the odd one out: it is one-shot, and only re-arms because
+-- the update that handles its message drops it from this list.
 
 subscriptions :: Model -> Array (Subscription Msg)
 subscriptions model =
-  if model.watchingResize then [ onWindowEvent "resize" WindowResized ] else []
+  (if model.watchingResize then [ onWindowEvent "resize" WindowResized ] else [])
+    <> (if model.ticking then [ onInterval 1000 Tick, onInterval 1000 Blink ] else [])
+    <> (case model.notice of
+          Just _ -> [ onTimeout 2500 DismissNotice ]
+          Nothing -> [])
 
 app :: App Msg Model
 app = createApp { init, view, update, next, subscriptions }

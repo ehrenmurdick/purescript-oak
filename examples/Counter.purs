@@ -15,6 +15,11 @@ data Msg
   = Inc
   | Dec
 
+-- | `runApp` reconciles subscriptions by comparing messages, so every message
+-- | type needs this -- even in an app like this one that subscribes to
+-- | nothing.
+derive instance eqMsg :: Eq Msg
+
 view :: Model -> Html Msg
 view model = div []
   [ div []

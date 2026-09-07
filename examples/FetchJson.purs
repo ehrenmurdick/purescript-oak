@@ -4,6 +4,7 @@ module Oak.Examples.FetchJson where
 
 import Effect (Effect)
 import Effect.Aff (Aff, Error, never, runAff_)
+import Effect.Exception (message) as Exception
 import Effect.Class (liftEffect)
 import Effect.Console (logShow)
 import Fetch as F
@@ -31,6 +32,18 @@ data Msg
   = SetText String
   | GoGet
   | Got (Either Error User)
+
+-- | `runApp` reconciles subscriptions by comparing messages, so every message
+-- | type needs an `Eq`. This one is hand-written rather than derived because
+-- | `Error` has no `Eq` of its own -- two errors are compared by their text.
+instance eqMsg :: Eq Msg where
+  eq (SetText a) (SetText b) = a == b
+  eq GoGet GoGet = true
+  eq (Got a) (Got b) = case a, b of
+    Left e1, Left e2 -> Exception.message e1 == Exception.message e2
+    Right u1, Right u2 -> u1 == u2
+    _, _ -> false
+  eq _ _ = false
 
 view :: Model -> Html Msg
 view model = div []

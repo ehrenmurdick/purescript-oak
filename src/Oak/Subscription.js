@@ -13,3 +13,31 @@ export function addWindowListenerImpl(name, action) {
     };
   };
 }
+
+export function setIntervalImpl(ms, action) {
+  return function () {
+    return setInterval(function () {
+      action();
+    }, ms);
+  };
+}
+
+export function clearIntervalImpl(id) {
+  return function () {
+    clearInterval(id);
+  };
+}
+
+export function setTimeoutImpl(ms, action) {
+  return function () {
+    return setTimeout(function () {
+      action();
+    }, ms);
+  };
+}
+
+export function clearTimeoutImpl(id) {
+  return function () {
+    clearTimeout(id);
+  };
+}

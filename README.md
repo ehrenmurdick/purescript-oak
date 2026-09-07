@@ -92,6 +92,10 @@ data Msg
   = Inc
   | Dec
 
+-- `runApp` reconciles subscriptions by comparing messages, so every message
+-- type needs an Eq instance, even in an app that subscribes to nothing.
+derive instance eqMsg :: Eq Msg
+
 view :: Model -> Html Msg
 view model = div []
   [ div []

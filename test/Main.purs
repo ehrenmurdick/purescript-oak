@@ -9,7 +9,21 @@ import Effect.Class.Console (log)
 import Effect.Exception (throw)
 import Effect.Ref as Ref
 import Oak.Route (Mode(..), parseUrl, queryParam)
+import Oak.Subscription (onInterval, onTimeout, onWindowEvent, sameSub)
+import Oak.Subscription as Sub
 import Test.RouterRoutes (parse, print, samples)
+
+-- | A stand-in message type for the subscription checks below. Timer
+-- | subscriptions are told apart by their messages, so they need the `Eq`.
+data TimerMsg
+  = Tick
+  | Poll
+
+derive instance eqTimerMsg :: Eq TimerMsg
+
+instance showTimerMsg :: Show TimerMsg where
+  show Tick = "Tick"
+  show Poll = "Poll"
 
 main :: Effect Unit
 main = do
@@ -80,6 +94,34 @@ main = do
   log "Test.RouterRoutes -- non-routes"
   check "unknown path" (parse (parseUrl Path "/nope")) (parse (parseUrl Path "/404"))
   check "non-numeric id" (parse (parseUrl Path "/notes/abc")) (parse (parseUrl Path "/404"))
+
+  log "Oak.Subscription -- what counts as the same subscription"
+  -- window events are identified by name alone: there is one window, so one
+  -- `resize` event, and two subscriptions to it share a single listener
+  check "same window event" (sameSub (onWindowEvent "resize" Tick) (onWindowEvent "resize" Poll)) true
+  check "different window events" (sameSub (onWindowEvent "resize" Tick) (onWindowEvent "online" Tick)) false
+
+  -- timers are identified by duration *and* message, so an app can run two
+  -- of them on the same period without one swallowing the other
+  check "timer: same period and message" (sameSub (onInterval 1000 Tick) (onInterval 1000 Tick)) true
+  check "timer: same period, other message" (sameSub (onInterval 1000 Tick) (onInterval 1000 Poll)) false
+  check "timer: other period, same message" (sameSub (onInterval 1000 Tick) (onInterval 500 Tick)) false
+  check "timeout: same duration and message" (sameSub (onTimeout 2500 Tick) (onTimeout 2500 Tick)) true
+  check "timeout: same duration, other message" (sameSub (onTimeout 2500 Tick) (onTimeout 2500 Poll)) false
+
+  -- and the three kinds never collide with each other
+  check "an interval is not a timeout" (sameSub (onInterval 1000 Tick) (onTimeout 1000 Tick)) false
+  check "a timer is not a window event" (sameSub (onInterval 1000 Tick) (onWindowEvent "resize" Tick)) false
+
+  -- `map` rewrites the message a subscription sends without changing which
+  -- subscription it is, so a mapped timer is still retained across updates
+  check "map keeps a timer's identity"
+    (sameSub (map Just (onInterval 1000 Tick)) (map Just (onInterval 1000 Tick)))
+    true
+  check "map keeps two timers apart"
+    (sameSub (map Just (onInterval 1000 Tick)) (map Just (onInterval 1000 Poll)))
+    false
+  check "map rewrites the message" (Sub.message (map Just (onInterval 1000 Tick))) (Just Tick)
 
   failed <- Ref.read failures
   if failed == 0 then

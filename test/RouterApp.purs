@@ -68,6 +68,8 @@ data Msg
   | UpdateJump String
   | SubmitJump
 
+derive instance eqMsg :: Eq Msg
+
 -- The runtime folds the real URL through `update` before the first render,
 -- so this placeholder is never actually painted.
 init :: Model

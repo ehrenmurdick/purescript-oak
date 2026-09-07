@@ -15,114 +15,26 @@ module Oak
 
 import Oak.Html
 
-import Data.Either
-  ( Either(..)
-  , choose
-  , either
-  , fromLeft
-  , fromRight
-  , hush
-  , isLeft
-  , isRight
-  , note
-  , note'
-  )
 import Data.Array (filter, nubByEq)
-import Data.Foldable (elem, find, traverse_)
+import Data.Either (Either(..), choose, either, fromLeft, fromRight, hush, isLeft, isRight, note, note')
+import Data.Foldable (any, find, traverse_)
 import Data.Maybe (Maybe(..), fromJust)
 import Data.Monoid (mempty)
 import Data.Traversable (traverse)
 import Effect (Effect)
 import Effect.Ref (Ref, new, read, write) as Ref
-import Oak.Document
-  ( Element
-  , Node
-  , appendChildNode
-  , getElementById
-  , onDocumentReady
-  )
-import Oak.Html.Events
-  ( onAbort
-  , onAfterprint
-  , onBeforeprint
-  , onBeforeunload
-  , onBlur
-  , onCanplay
-  , onCanplaythrough
-  , onChange
-  , onClick
-  , onContextmenu
-  , onCopy
-  , onCuechange
-  , onCut
-  , onDblclick
-  , onDrag
-  , onDragend
-  , onDragenter
-  , onDragleave
-  , onDragover
-  , onDragstart
-  , onDrop
-  , onDurationchange
-  , onEmptied
-  , onEnded
-  , onError
-  , onFocus
-  , onHashchange
-  , onInput
-  , onInvalid
-  , onKeydown
-  , onKeypress
-  , onKeyup
-  , onLoad
-  , onLoadeddata
-  , onLoadedmetadata
-  , onLoadstart
-  , onMousedown
-  , onMousemove
-  , onMouseout
-  , onMouseover
-  , onMouseup
-  , onMousewheel
-  , onOffline
-  , onOnline
-  , onPagehide
-  , onPageshow
-  , onPaste
-  , onPause
-  , onPlay
-  , onPlaying
-  , onPopstate
-  , onProgress
-  , onRatechange
-  , onReset
-  , onResize
-  , onScroll
-  , onSearch
-  , onSeeked
-  , onSeeking
-  , onSelect
-  , onStalled
-  , onStorage
-  , onSubmit
-  , onSuspend
-  , onTimeupdate
-  , onToggle
-  , onUnload
-  , onVolumechange
-  , onWaiting
-  , onWheel
-  )
+import Oak.Document (Element, Node, appendChildNode, getElementById, onDocumentReady)
+import Oak.Html.Events (onAbort, onAfterprint, onBeforeprint, onBeforeunload, onBlur, onCanplay, onCanplaythrough, onChange, onClick, onContextmenu, onCopy, onCuechange, onCut, onDblclick, onDrag, onDragend, onDragenter, onDragleave, onDragover, onDragstart, onDrop, onDurationchange, onEmptied, onEnded, onError, onFocus, onHashchange, onInput, onInvalid, onKeydown, onKeypress, onKeyup, onLoad, onLoadeddata, onLoadedmetadata, onLoadstart, onMousedown, onMousemove, onMouseout, onMouseover, onMouseup, onMousewheel, onOffline, onOnline, onPagehide, onPageshow, onPaste, onPause, onPlay, onPlaying, onPopstate, onProgress, onRatechange, onReset, onResize, onScroll, onSearch, onSeeked, onSeeking, onSelect, onStalled, onStorage, onSubmit, onSuspend, onTimeupdate, onToggle, onUnload, onVolumechange, onWaiting, onWheel)
 import Oak.Navigation as Nav
 import Oak.Route (Mode(..), QueryParam, Url, parseUrl, queryParam)
 import Oak.Subscription (Subscription)
 import Oak.Subscription as Sub
 import Oak.VirtualDom (patch, render)
+import Oak.VirtualDom.Native as N
 import Oak.Window (alert, alert', confirm, prompt, prompt')
 import Partial.Unsafe (unsafePartial)
-import Prelude (bind, discard, map, not, pure, Unit, unit, (==), (>>=))
-
-import Oak.VirtualDom.Native as N
+import Prelude (class Eq, bind, discard, not, pure, Unit, unit, (>>=))
+import Prim.Boolean (True)
 
 data App msg model
   = App {init :: model, update :: msg -> model -> model, next :: msg -> model -> (msg -> Effect Unit) -> Effect Unit, subscriptions :: model -> Array (Subscription msg), view :: model -> View msg, router :: Maybe (Router msg)}
@@ -238,8 +150,14 @@ unwrapApp (App app) = { init: app.init
 -- | containing the root node of the app, which can
 -- | be used to embed the application. See the `main` function
 -- | of the example app in the readme.
+-- |
+-- | The `Eq msg` is what lets the runtime reconcile subscriptions: it has to
+-- | be able to tell whether the timer an app is asking for this update is the
+-- | one already running. A `derive instance eqMsg :: Eq Msg` is normally all
+-- | it takes.
 runApp ::
   forall msg model.
+  Eq msg =>
   App msg model ->
   Maybe msg ->
   Effect Node
@@ -249,12 +167,15 @@ runApp app initialMsg = do
 type Runtime msg model
   = {tree :: Maybe N.Tree, root :: Maybe Node, model :: model, subs :: Array (ActiveSub msg)}
 
--- | A subscription the runtime currently has a listener attached for. The
--- | message lives behind a ref so that a subscription whose message changed
--- | between updates can be refreshed in place, without detaching and
--- | reattaching the underlying listener.
+-- | A subscription the runtime currently has a listener attached for.
+-- |
+-- | `sub` is kept for its identity only -- the message it carries is the one
+-- | this listener was first attached with, which for a window event may since
+-- | have gone stale. The message actually dispatched lives behind `current`,
+-- | so a subscription whose message changed between updates can be refreshed
+-- | in place without detaching and reattaching the underlying listener.
 type ActiveSub msg
-  = {key :: String, current :: Ref.Ref msg, unsubscribe :: Effect Unit}
+  = {sub :: Subscription msg, current :: Ref.Ref msg, unsubscribe :: Effect Unit}
 
 -- TODO: investigate implementing monoid for App and replace
 --       state loop with foldl
@@ -264,6 +185,7 @@ type ActiveSub msg
 -- | and just have their message refreshed.
 syncSubs ::
   forall msg model.
+  Eq msg =>
   Ref.Ref (Runtime msg model) ->
   (msg -> Effect Unit) ->
   Array (Subscription msg) ->
@@ -271,9 +193,8 @@ syncSubs ::
 syncSubs ref dispatch subs = do
   env <- Ref.read ref
   -- two subscriptions to the same event share a listener, so the first wins
-  let wanted = nubByEq (\a b -> Sub.key a == Sub.key b) subs
-  let wantedKeys = map Sub.key wanted
-  traverse_ _.unsubscribe (filter (\a -> not (elem a.key wantedKeys)) env.subs)
+  let wanted = nubByEq Sub.sameSub subs
+  traverse_ _.unsubscribe (filter (\a -> not (any (Sub.sameSub a.sub) wanted)) env.subs)
   active <- traverse (startOrRetain env.subs dispatch) wanted
   -- re-read: a subscription that fired during attach may have replaced env
   env' <- Ref.read ref
@@ -281,22 +202,24 @@ syncSubs ref dispatch subs = do
 
 startOrRetain ::
   forall msg.
+  Eq msg =>
   Array (ActiveSub msg) ->
   (msg -> Effect Unit) ->
   Subscription msg ->
   Effect (ActiveSub msg)
 startOrRetain active dispatch sub =
-  case find (\a -> a.key == Sub.key sub) active of
+  case find (\a -> Sub.sameSub a.sub sub) active of
     Just a -> do
       Ref.write (Sub.message sub) a.current
       pure a
     Nothing -> do
       current <- Ref.new (Sub.message sub)
       unsubscribe <- Sub.attach sub (Ref.read current >>= dispatch)
-      pure { key: Sub.key sub, current: current, unsubscribe: unsubscribe }
+      pure { sub: sub, current: current, unsubscribe: unsubscribe }
 
 handler ::
   forall msg model.
+  Eq msg =>
   Ref.Ref (Runtime msg model) ->
   RunningApp msg model ->
   msg ->
@@ -319,7 +242,7 @@ handler ref runningApp msg = do
   app.next msg newModel (handler ref runningApp)
   mempty
 
-runApp_ :: forall msg model. App msg model -> Maybe msg -> Effect Node
+runApp_ :: forall msg model. Eq msg => App msg model -> Maybe msg -> Effect Node
 runApp_ (App app) msg = do
   let runningApp = { view: app.view
                    , next: app.next
