@@ -26,7 +26,7 @@ import Effect.Ref (Ref, new, read, write) as Ref
 import Oak.Cmd (Cmd)
 import Oak.Cmd as Cmd
 import Oak.Document (Element, Node, appendChildNode, getElementById, onDocumentReady)
-import Oak.Html.Events (onAbort, onAfterprint, onBeforeprint, onBeforeunload, onBlur, onCanplay, onCanplaythrough, onChange, onClick, onContextmenu, onCopy, onCuechange, onCut, onDblclick, onDrag, onDragend, onDragenter, onDragleave, onDragover, onDragstart, onDrop, onDurationchange, onEmptied, onEnded, onError, onFocus, onHashchange, onInput, onInvalid, onKeydown, onKeypress, onKeyup, onLoad, onLoadeddata, onLoadedmetadata, onLoadstart, onMousedown, onMousemove, onMouseout, onMouseover, onMouseup, onMousewheel, onOffline, onOnline, onPagehide, onPageshow, onPaste, onPause, onPlay, onPlaying, onPopstate, onProgress, onRatechange, onReset, onResize, onScroll, onSearch, onSeeked, onSeeking, onSelect, onStalled, onStorage, onSubmit, onSuspend, onTimeupdate, onToggle, onUnload, onVolumechange, onWaiting, onWheel)
+import Oak.Html.Events (allowDrop, onAbort, onAfterprint, onBeforeprint, onBeforeunload, onBlur, onCanplay, onCanplaythrough, onChange, onClick, onContextmenu, onCopy, onCuechange, onCut, onDblclick, onDrag, onDrag', onDragend, onDragend', onDragenter, onDragenter', onDragleave, onDragleave', onDragover, onDragover', onDragstart, onDragstart', onDragstartWith, onDrop, onDrop', onDurationchange, onEmptied, onEnded, onError, onFocus, onHashchange, onInput, onInvalid, onKeydown, onKeypress, onKeyup, onLoad, onLoadeddata, onLoadedmetadata, onLoadstart, onMousedown, onMousemove, onMouseout, onMouseover, onMouseup, onMousewheel, onOffline, onOnline, onPagehide, onPageshow, onPaste, onPause, onPlay, onPlaying, onPopstate, onProgress, onRatechange, onReset, onResize, onScroll, onSearch, onSeeked, onSeeking, onSelect, onStalled, onStorage, onSubmit, onSuspend, onTimeupdate, onToggle, onUnload, onVolumechange, onWaiting, onWheel)
 import Oak.Navigation as Nav
 import Oak.Route (Mode(..), QueryParam, Url, parseUrl, queryParam)
 import Oak.Subscription (Subscription)
@@ -175,11 +175,16 @@ type Runtime msg model
 -- |
 -- | `sub` is kept for its identity only -- the message it carries is the one
 -- | this listener was first attached with, which for a window event may since
--- | have gone stale. The message actually dispatched lives behind `current`,
--- | so a subscription whose message changed between updates can be refreshed
--- | in place without detaching and reattaching the underlying listener.
+-- | have gone stale. What actually gets dispatched comes from `current`, so a
+-- | subscription whose message changed between updates can be refreshed in
+-- | place without detaching and reattaching the underlying listener.
+-- |
+-- | `current` holds the whole subscription rather than just its message,
+-- | because a window event may build its message from the event -- a drag
+-- | and its payload -- and there is no message to hold until one fires.
+-- | `Oak.Subscription.attach` reads it at that point.
 type ActiveSub msg
-  = {sub :: Subscription msg, current :: Ref.Ref msg, unsubscribe :: Effect Unit}
+  = {sub :: Subscription msg, current :: Ref.Ref (Subscription msg), unsubscribe :: Effect Unit}
 
 -- | Reconciles the subscriptions the app currently wants against the
 -- | listeners already attached: subscriptions that disappeared are stopped,
@@ -212,11 +217,11 @@ startOrRetain ::
 startOrRetain active dispatch sub =
   case find (\a -> Sub.sameSub a.sub sub) active of
     Just a -> do
-      Ref.write (Sub.message sub) a.current
+      Ref.write sub a.current
       pure a
     Nothing -> do
-      current <- Ref.new (Sub.message sub)
-      unsubscribe <- Sub.attach sub (Ref.read current >>= dispatch)
+      current <- Ref.new sub
+      unsubscribe <- Sub.attach current dispatch
       pure { sub: sub, current: current, unsubscribe: unsubscribe }
 
 -- | One turn of the loop: fold a message into `env`, paint the result, and

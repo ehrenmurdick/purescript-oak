@@ -24,6 +24,25 @@ type KeyPressEvent =
   , which :: Boolean
   }
 
+-- | What a drag event carries into a message.
+-- |
+-- | `dataTransfer` is the `text/plain` payload the drag was started with --
+-- | whatever string was handed to `Oak.Html.Events.onDragstartWith`. The
+-- | browser only lets it be *read* during `drop`: on `dragover` and
+-- | `dragenter` the drag data is in protected mode and reads back as `""`,
+-- | which is a browser rule and not something Oak can work around. Decide
+-- | what a drop does from the payload; decide what a hover *looks* like from
+-- | the drop target's own identity.
+type DragEvent =
+  { altKey :: Boolean
+  , clientX :: Number
+  , clientY :: Number
+  , ctrlKey :: Boolean
+  , dataTransfer :: String
+  , metaKey :: Boolean
+  , shiftKey :: Boolean
+  }
+
 data Attribute msg
   = BooleanAttribute String Boolean
   | DataAttribute String String
@@ -31,6 +50,29 @@ data Attribute msg
   | ForcedBoolean String Boolean
   | ForcedString String String
   | KeyPressEventHandler String (KeyPressEvent -> msg)
+  -- | A drag event handler that reads the event. Used for the drag events
+  -- | whose default action must be left alone -- cancelling `dragstart` is
+  -- | how you stop a drag from starting at all.
+  | DragEventHandler String (DragEvent -> msg)
+  -- | A drag event handler that cancels the default action and reads the
+  -- | event. `drop` needs both halves: without the cancel the browser
+  -- | navigates to whatever was dropped, and without the read the app never
+  -- | learns what that was.
+  | PreventingDragEventHandler String (DragEvent -> msg)
+  -- | An event handler that writes a string into the event's `dataTransfer`
+  -- | before dispatching. Only `dragstart` has anywhere to put it, and a
+  -- | drag that sets nothing does not start at all in Firefox, so this is
+  -- | how a drag gets a payload. See `Oak.Html.Events.onDragstartWith`.
+  | DataTransferHandler String String msg
+  -- | Cancel an event's default action and dispatch nothing.
+  -- |
+  -- | This exists for `dragover`, which has to be cancelled on every frame of
+  -- | a drag or the element refuses drops -- and which therefore fires far
+  -- | too often to turn into messages. Every message costs a full render,
+  -- | diff and patch, so a drop target that dispatched on `dragover` would
+  -- | repaint the whole app sixty times a second to learn nothing.
+  -- | See `Oak.Html.Events.allowDrop`.
+  | PreventDefault String
   -- | An event handler that cancels the browser's default action before
   -- | dispatching, for events whose default would otherwise undo the app --
   -- | a form submit reloading the page, say. See `Oak.Html.Events.onSubmit`.
@@ -46,6 +88,10 @@ instance attributeFunctor :: Functor Attribute where
       StringEventHandler n ctor -> StringEventHandler n (ctor >>> f)
       EventHandler n msg -> EventHandler n (f msg)
       KeyPressEventHandler n ctor -> KeyPressEventHandler n (ctor >>> f)
+      DragEventHandler n ctor -> DragEventHandler n (ctor >>> f)
+      PreventingDragEventHandler n ctor -> PreventingDragEventHandler n (ctor >>> f)
+      DataTransferHandler n payload msg -> DataTransferHandler n payload (f msg)
+      PreventDefault n -> PreventDefault n
       PreventingEventHandler n msg -> PreventingEventHandler n (f msg)
       BooleanAttribute n bool -> BooleanAttribute n bool
       ForcedBoolean n bool -> ForcedBoolean n bool

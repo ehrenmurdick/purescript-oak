@@ -1,8 +1,9 @@
 module Oak.VirtualDom.Native where
 
-import Data.Function.Uncurried (Fn1, Fn3, runFn1, runFn3)
+import Data.Function.Uncurried (Fn1, Fn2, Fn3, Fn4, runFn1, runFn2, runFn3, runFn4)
 import Effect (Effect)
 import Oak.Document (Node)
+import Oak.Html.Attribute (DragEvent)
 
 foreign import data Tree :: Type
 
@@ -74,6 +75,42 @@ concatEventTargetValueHandlerFun ::
   NativeAttrs ->
   NativeAttrs
 concatEventTargetValueHandlerFun = runFn3 concatEventTargetValueHandlerFunImpl
+
+foreign import concatDragHandlerFunImpl :: forall eff. Fn3 String (DragEvent -> eff) NativeAttrs NativeAttrs
+
+concatDragHandlerFun ::
+  forall eff.
+  String ->
+  (DragEvent -> eff) ->
+  NativeAttrs ->
+  NativeAttrs
+concatDragHandlerFun = runFn3 concatDragHandlerFunImpl
+
+foreign import concatPreventingDragHandlerFunImpl :: forall eff. Fn3 String (DragEvent -> eff) NativeAttrs NativeAttrs
+
+concatPreventingDragHandlerFun ::
+  forall eff.
+  String ->
+  (DragEvent -> eff) ->
+  NativeAttrs ->
+  NativeAttrs
+concatPreventingDragHandlerFun = runFn3 concatPreventingDragHandlerFunImpl
+
+foreign import concatDataTransferHandlerFunImpl :: forall eff event. Fn4 String String (event -> eff) NativeAttrs NativeAttrs
+
+concatDataTransferHandlerFun ::
+  forall eff event.
+  String ->
+  String ->
+  (event -> eff) ->
+  NativeAttrs ->
+  NativeAttrs
+concatDataTransferHandlerFun = runFn4 concatDataTransferHandlerFunImpl
+
+foreign import concatPreventDefaultImpl :: Fn2 String NativeAttrs NativeAttrs
+
+concatPreventDefault :: String -> NativeAttrs -> NativeAttrs
+concatPreventDefault = runFn2 concatPreventDefaultImpl
 
 foreign import textImpl :: Fn1 String (Effect Tree)
 

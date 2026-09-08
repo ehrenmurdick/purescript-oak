@@ -77,6 +77,106 @@ export function concatEventTargetValueHandlerFunImpl(name, msgHandler, rest) {
   return result;
 }
 
+// Read the parts of a drag event an Oak app can use, as the DragEvent record
+// in Oak.Html.Attribute.
+//
+// getData() only returns the payload during `drop`. While a drag is in
+// flight the spec puts the drag data in "protected mode" and every earlier
+// event reads back as an empty string -- that is the browser's rule, not
+// ours. Some browsers throw rather than return "" outside a drop, so the
+// read is guarded.
+//
+// NOTE: Oak/Subscription.js carries a copy of this. PureScript FFI modules
+// are compiled into separate output directories and cannot import from one
+// another, so the two have to be kept in step by hand.
+function readDragEvent(event) {
+  var payload = "";
+  if (event && event.dataTransfer) {
+    try {
+      payload = event.dataTransfer.getData("text/plain") || "";
+    } catch (e) {
+      payload = "";
+    }
+  }
+  return {
+    altKey: !!(event && event.altKey),
+    clientX: event && typeof event.clientX === "number" ? event.clientX : 0.0,
+    clientY: event && typeof event.clientY === "number" ? event.clientY : 0.0,
+    ctrlKey: !!(event && event.ctrlKey),
+    dataTransfer: payload,
+    metaKey: !!(event && event.metaKey),
+    shiftKey: !!(event && event.shiftKey),
+  };
+}
+
+// foreign import concatDragHandlerFunImpl :: ∀ eff.
+//   Fn3 String (DragEvent -> eff) NativeAttrs NativeAttrs
+export function concatDragHandlerFunImpl(name, msgHandler, rest) {
+  var result = Object.assign({}, rest);
+  result[name] = function (event) {
+    msgHandler(readDragEvent(event))();
+  };
+  return result;
+}
+
+// foreign import concatPreventingDragHandlerFunImpl :: ∀ eff.
+//   Fn3 String (DragEvent -> eff) NativeAttrs NativeAttrs
+//
+// `drop` needs the cancel as much as the read: without it the browser
+// follows its default action for the dropped data, which for text is to
+// navigate away from the app that was about to handle it.
+export function concatPreventingDragHandlerFunImpl(name, msgHandler, rest) {
+  var result = Object.assign({}, rest);
+  result[name] = function (event) {
+    if (event && typeof event.preventDefault === "function") {
+      event.preventDefault();
+    }
+    msgHandler(readDragEvent(event))();
+  };
+  return result;
+}
+
+// foreign import concatDataTransferHandlerFunImpl :: ∀ eff event.
+//   Fn4 String String (event -> eff) NativeAttrs NativeAttrs
+//
+// The dragstart half of the protocol. Setting the data is what makes the
+// drag real -- Firefox will not start one otherwise -- and effectAllowed is
+// what gets the pointer a move cursor instead of the "no entry" one.
+// Deliberately does NOT preventDefault: cancelling dragstart cancels the
+// drag.
+export function concatDataTransferHandlerFunImpl(name, payload, msgHandler, rest) {
+  var result = Object.assign({}, rest);
+  result[name] = function (event) {
+    if (event && event.dataTransfer) {
+      try {
+        event.dataTransfer.setData("text/plain", payload);
+        event.dataTransfer.effectAllowed = "move";
+      } catch (e) {
+        // A browser that refuses the write still gets the message; the drop
+        // handler will see an empty payload and can fall back to the model.
+      }
+    }
+    msgHandler(event)();
+  };
+  return result;
+}
+
+// foreign import concatPreventDefaultImpl ::
+//   Fn2 String NativeAttrs NativeAttrs
+//
+// Cancel and stay quiet. This is what a drop target puts on `dragover`: the
+// event has to be cancelled on every frame for the element to accept a drop,
+// and every frame turned into a message would be a full render and diff.
+export function concatPreventDefaultImpl(name, rest) {
+  var result = Object.assign({}, rest);
+  result[name] = function (event) {
+    if (event && typeof event.preventDefault === "function") {
+      event.preventDefault();
+    }
+  };
+  return result;
+}
+
 // foreign import concatSimpleAttrImpl :: ∀ eff event.
 //   Fn3 String String NativeAttrs NativeAttrs
 export function concatSimpleAttrImpl(name, value, rest) {

@@ -38,6 +38,152 @@ onKeyup :: ∀ msg. (Int -> msg) -> Attribute msg
 onKeyup f = onKeyup' (map f \e -> e.keyCode)
 
 
+-- drag and drop
+----------------
+--
+-- HTML5's native drag and drop, which is a protocol rather than a set of
+-- events: a drag carries a string payload, and a drop only happens if the
+-- element under the pointer has been cancelling `dragover` all along. The
+-- three pieces an app needs are `onDragstartWith` on the thing being
+-- dragged, `allowDrop` and `onDrop'` on the thing being dropped onto.
+--
+-- ```purescript
+-- -- the card
+-- div [ draggable "true", onDragstartWith (show card.id) (Grabbed card.id) ] [ ... ]
+--
+-- -- somewhere it can go
+-- div [ allowDrop, onDrop' \e -> Dropped e.dataTransfer slot ] [ ... ]
+-- ```
+--
+-- Touch is the standing limitation: most mobile browsers do not fire these
+-- events at all.
+
+
+-- | Mark this element as a place a drop is allowed, without sending a
+-- | message.
+-- |
+-- | An element only accepts drops if it cancels `dragover`, and `dragover`
+-- | fires continuously for as long as the pointer is over it. This does the
+-- | cancelling and nothing else, so a drop target costs no messages and no
+-- | re-renders while a drag hovers over it. Pair it with `onDragenter` when
+-- | the app wants to know it is being hovered.
+allowDrop :: ∀ msg. Attribute msg
+allowDrop = PreventDefault "ondragover"
+
+
+-- | Start a drag carrying `payload`, and send a message.
+-- |
+-- | The payload is written to the event's `dataTransfer` as `text/plain` and
+-- | comes back on `onDrop'` as `e.dataTransfer`. Sending one is not optional
+-- | -- Firefox refuses to start a drag whose data was never set -- so this,
+-- | rather than `onDragstart`, is the usual way to begin.
+-- |
+-- | It is a string, which means an id has to be printed here and parsed at
+-- | the drop. Keeping the same id in the model alongside it is often easier
+-- | than trusting the round trip.
+-- |
+-- | The element also needs `draggable "true"` before any of this fires.
+onDragstartWith :: ∀ msg. String -> msg -> Attribute msg
+onDragstartWith payload msg = DataTransferHandler "ondragstart" payload msg
+
+
+onDragstart :: ∀ msg. msg -> Attribute msg
+onDragstart msg = EventHandler "ondragstart" msg
+
+
+onDragstart' :: ∀ msg. (DragEvent -> msg) -> Attribute msg
+onDragstart' f = DragEventHandler "ondragstart" f
+
+
+-- | Fires continuously on the element being dragged. Firing rate is the
+-- | pointer's, so turning it into a message repaints the app on every frame
+-- | of the drag -- reach for it only when the app truly needs the positions.
+onDrag :: ∀ msg. msg -> Attribute msg
+onDrag msg = EventHandler "ondrag" msg
+
+
+onDrag' :: ∀ msg. (DragEvent -> msg) -> Attribute msg
+onDrag' f = DragEventHandler "ondrag" f
+
+
+-- | The drag is over, however it ended -- dropped, dropped somewhere that
+-- | refused it, or cancelled with Escape.
+-- |
+-- | This fires on the element the drag *started* from, so it is the reliable
+-- | place to clear whatever `onDragstartWith` set up. A drop that lands
+-- | outside the window sends this and nothing else.
+onDragend :: ∀ msg. msg -> Attribute msg
+onDragend msg = EventHandler "ondragend" msg
+
+
+onDragend' :: ∀ msg. (DragEvent -> msg) -> Attribute msg
+onDragend' f = DragEventHandler "ondragend" f
+
+
+-- | A drag has entered this element. Cancels the default action, so an
+-- | element with this on it is already a legal drop target for the moment
+-- | the pointer is inside it -- but `dragover` is what keeps it one, so pair
+-- | this with `allowDrop`.
+-- |
+-- | Note that this also fires as the pointer crosses into *child* elements,
+-- | which is why highlighting a hovered target usually reads better driven
+-- | from here and cleared on drop or `dragend`, rather than tracked with
+-- | `onDragleave`.
+onDragenter :: ∀ msg. msg -> Attribute msg
+onDragenter msg = PreventingEventHandler "ondragenter" msg
+
+
+onDragenter' :: ∀ msg. (DragEvent -> msg) -> Attribute msg
+onDragenter' f = PreventingDragEventHandler "ondragenter" f
+
+
+-- | A drag has left this element -- or moved into one of its children, which
+-- | the browser reports the same way. See the note on `onDragenter`.
+onDragleave :: ∀ msg. msg -> Attribute msg
+onDragleave msg = EventHandler "ondragleave" msg
+
+
+onDragleave' :: ∀ msg. (DragEvent -> msg) -> Attribute msg
+onDragleave' f = DragEventHandler "ondragleave" f
+
+
+-- | A drag is over this element. Cancels the default action, which is what
+-- | makes the element accept drops at all.
+-- |
+-- | This fires every frame the pointer is inside the element, and every
+-- | message is a full render and diff, so prefer `allowDrop` -- which does
+-- | the same cancelling silently -- unless the app genuinely wants to hear
+-- | about each frame.
+onDragover :: ∀ msg. msg -> Attribute msg
+onDragover msg = PreventingEventHandler "ondragover" msg
+
+
+onDragover' :: ∀ msg. (DragEvent -> msg) -> Attribute msg
+onDragover' f = PreventingDragEventHandler "ondragover" f
+
+
+-- | Something was dropped on this element. Cancels the default action, which
+-- | would otherwise be the browser navigating to the dropped text or opening
+-- | the dropped file.
+-- |
+-- | Only fires if the element was cancelling `dragover` -- see `allowDrop`.
+onDrop :: ∀ msg. msg -> Attribute msg
+onDrop msg = PreventingEventHandler "ondrop" msg
+
+
+-- | `onDrop` with the payload the drag was carrying.
+-- |
+-- | ```purescript
+-- | div [ allowDrop, onDrop' \e -> Dropped e.dataTransfer (EndOf column.id) ] [ ... ]
+-- | ```
+-- |
+-- | `drop` is the only event that is allowed to read `e.dataTransfer`; every
+-- | earlier one sees `""`.
+onDrop' :: ∀ msg. (DragEvent -> msg) -> Attribute msg
+onDrop' f = PreventingDragEventHandler "ondrop" f
+
+
+
 -- events with no assoc data, e.g. onclick
 ------------------------------------------
 
@@ -98,32 +244,11 @@ onDblclick :: ∀ msg.  msg -> Attribute msg
 onDblclick msg = EventHandler "ondblclick" msg
 
 
-onDrag :: ∀ msg.  msg -> Attribute msg
-onDrag msg = EventHandler "ondrag" msg
 
 
-onDragend :: ∀ msg.  msg -> Attribute msg
-onDragend msg = EventHandler "ondragend" msg
 
 
-onDragenter :: ∀ msg.  msg -> Attribute msg
-onDragenter msg = EventHandler "ondragenter" msg
 
-
-onDragleave :: ∀ msg.  msg -> Attribute msg
-onDragleave msg = EventHandler "ondragleave" msg
-
-
-onDragover :: ∀ msg.  msg -> Attribute msg
-onDragover msg = EventHandler "ondragover" msg
-
-
-onDragstart :: ∀ msg.  msg -> Attribute msg
-onDragstart msg = EventHandler "ondragstart" msg
-
-
-onDrop :: ∀ msg.  msg -> Attribute msg
-onDrop msg = EventHandler "ondrop" msg
 
 
 onDurationchange :: ∀ msg.  msg -> Attribute msg

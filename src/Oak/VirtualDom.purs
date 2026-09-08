@@ -50,6 +50,19 @@ concatAttr _ (DataAttribute name val) attrs = N.concatDataAttr name val attrs
 concatAttr handler (KeyPressEventHandler name f) attrs = N.concatHandlerFun name (\e ->
   handler (f e)) attrs
 
+concatAttr handler (DragEventHandler name f) attrs = N.concatDragHandlerFun name (\e ->
+  handler (f e)) attrs
+
+concatAttr handler (PreventingDragEventHandler name f) attrs = N.concatPreventingDragHandlerFun name (\e ->
+  handler (f e)) attrs
+
+concatAttr handler (DataTransferHandler name payload msg) attrs = N.concatDataTransferHandlerFun name payload (\_ ->
+  handler msg) attrs
+
+-- | No handler at all: the browser's default action is cancelled and nothing
+-- | is dispatched, so this costs no render. See `Oak.Html.Events.allowDrop`.
+concatAttr _ (PreventDefault name) attrs = N.concatPreventDefault name attrs
+
 stringifyStyle :: StyleAttribute -> String
 stringifyStyle (StyleAttribute name value) = name <> ":" <> value
 
