@@ -217,8 +217,21 @@ dirname val = SimpleAttribute "dirname" val
 download :: ∀ msg. String -> Attribute msg
 download val = SimpleAttribute "download" val
 
-draggable :: ∀ msg. String -> Attribute msg
-draggable val = SimpleAttribute "draggable" val
+-- | Whether this element can be picked up and dragged.
+-- |
+-- | A `Boolean`, and a forced property, because the obvious spelling cannot
+-- | say no. These are assigned as DOM properties, and `node.draggable =
+-- | "false"` is a non-empty string -- which is `true`. A `String` version
+-- | therefore has no way to turn dragging off, which makes a drag *handle*
+-- | -- an element armed while the pointer is on the grip and disarmed the
+-- | rest of the time -- impossible to express.
+-- |
+-- | `ForcedBoolean` rather than `BooleanAttribute` because `draggable` is an
+-- | enumerated attribute, not a boolean one: absent means "auto", and auto is
+-- | true for links and images. Only writing the real `false` turns it off
+-- | everywhere.
+draggable :: ∀ msg. Boolean -> Attribute msg
+draggable b = ForcedBoolean "draggable" b
 
 dropzone :: ∀ msg. String -> Attribute msg
 dropzone val = SimpleAttribute "dropzone" val

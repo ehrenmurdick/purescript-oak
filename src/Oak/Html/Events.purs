@@ -49,7 +49,7 @@ onKeyup f = onKeyup' (map f \e -> e.keyCode)
 --
 -- ```purescript
 -- -- the card
--- div [ draggable "true", onDragstartWith (show card.id) (Grabbed card.id) ] [ ... ]
+-- div [ draggable true, onDragstartWith (show card.id) (Grabbed card.id) ] [ ... ]
 --
 -- -- somewhere it can go
 -- div [ allowDrop, onDrop' \e -> Dropped e.dataTransfer slot ] [ ... ]
@@ -82,7 +82,7 @@ allowDrop = PreventDefault "ondragover"
 -- | the drop. Keeping the same id in the model alongside it is often easier
 -- | than trusting the round trip.
 -- |
--- | The element also needs `draggable "true"` before any of this fires.
+-- | The element also needs `draggable true` before any of this fires.
 onDragstartWith :: ∀ msg. String -> msg -> Attribute msg
 onDragstartWith payload msg = DataTransferHandler "ondragstart" payload msg
 

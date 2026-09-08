@@ -289,7 +289,7 @@ viewCard model card =
   div
     [ key ("card-" <> show card.id)
     , className (cardClass model card)
-    , draggable "true"
+    , draggable true
     -- Starts the drag *and* gives it a payload. A drag that sets no data
     -- never starts at all in Firefox, so this is the usual way in.
     , onDragstartWith (show card.id) (Grabbed card.id)
