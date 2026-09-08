@@ -2,15 +2,16 @@ module Test.Main where
 
 import Prelude
 
-import Data.Foldable (traverse_)
+import Data.Foldable (find, traverse_)
 import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Class.Console (log)
 import Effect.Exception (throw)
 import Effect.Ref as Ref
 import Oak.Route (Mode(..), parseUrl, queryParam)
-import Oak.Subscription (onInterval, onTimeout, onWindowEvent, sameSub)
+import Oak.Subscription (onInterval, onTimeout, onWindowDragEnd, onWindowDragEnter, onWindowEvent, sameSub)
 import Oak.Subscription as Sub
+import Test.BoardApp as Board
 import Test.RouterRoutes (parse, print, samples)
 
 -- | A stand-in message type for the subscription checks below. Timer
@@ -121,7 +122,113 @@ main = do
   check "map keeps two timers apart"
     (sameSub (map Just (onInterval 1000 Tick)) (map Just (onInterval 1000 Poll)))
     false
-  check "map rewrites the message" (Sub.message (map Just (onInterval 1000 Tick))) (Just Tick)
+  check "map rewrites the message" (Sub.message (map Just (onInterval 1000 Tick))) (Just (Just Tick))
+
+  -- a window event that builds its message from the event has no message to
+  -- report until one fires, so the runtime reads it through `attach` instead
+  check "a payload-carrying sub has no standing message"
+    (Sub.message (onWindowDragEnd (\_ -> Tick)))
+    Nothing
+
+  -- payload-carrying window events reconcile by name, exactly like the plain
+  -- ones: there is one window, and a `DragEvent -> msg` could never be
+  -- compared even if the runtime wanted to
+  check "same window drag event"
+    (sameSub (onWindowDragEnd (\_ -> Tick)) (onWindowDragEnd (\_ -> Poll)))
+    true
+  check "different window drag events"
+    (sameSub (onWindowDragEnd (\_ -> Tick)) (onWindowDragEnter (\_ -> Tick)))
+    false
+  -- and a drag subscription is not the plain window event of the same name
+  check "a drag sub is not a plain window event"
+    (sameSub (onWindowDragEnd (\_ -> Tick)) (onWindowEvent "dragend" Tick))
+    false
+
+  check "map rewrites a drag sub's message"
+    (Sub.message (map Just (onWindowDragEnd (\_ -> Tick))))
+    Nothing
+  check "map keeps a drag sub's identity"
+    (sameSub (map Just (onWindowDragEnd (\_ -> Tick))) (map Just (onWindowDragEnd (\_ -> Poll))))
+    true
+
+  log "Test.BoardApp -- where a dropped card lands"
+  -- A drag is two messages folded through `update`, which is the whole point
+  -- of keeping the drag in the model: none of this needs a browser.
+  let
+    ids :: String -> Board.Model -> Array Int
+    ids colId model = case find (\col -> col.id == colId) model.columns of
+      Just col -> map _.id col.cards
+      Nothing -> []
+
+    -- pick a card up and drop it on a slot, the way the browser would
+    drag :: Int -> Board.Slot -> Board.Model -> Board.Model
+    drag cid slot model =
+      Board.update (Board.Dropped slot (show cid)) (Board.update (Board.Grabbed cid) model)
+
+  check "the board starts as written" (ids "todo" Board.init) [ 1, 2, 3 ]
+
+  -- reordering inside one column
+  check "dropping onto a card lands above it"
+    (ids "todo" (drag 3 (Board.Before 1) Board.init))
+    [ 3, 1, 2 ]
+  check "dropping on the tail sends a card to the end"
+    (ids "todo" (drag 1 (Board.EndOf "todo") Board.init))
+    [ 2, 3, 1 ]
+
+  -- and the same two messages move a card between columns
+  check "a card can leave its column"
+    (ids "todo" (drag 1 (Board.EndOf "doing") Board.init))
+    [ 2, 3 ]
+  check "and arrive in another"
+    (ids "doing" (drag 1 (Board.EndOf "doing") Board.init))
+    [ 4, 1 ]
+  check "arriving above a card in another column"
+    (ids "todo" (drag 5 (Board.Before 2) Board.init))
+    [ 1, 5, 2, 3 ]
+  check "leaves the column it came from"
+    (ids "done" (drag 5 (Board.Before 2) Board.init))
+    [ 6 ]
+
+  -- a drop that changes nothing must change nothing
+  check "dropping a card on itself" (ids "todo" (drag 1 (Board.Before 1) Board.init)) [ 1, 2, 3 ]
+  check "dropping the last card on its own tail"
+    (ids "todo" (drag 3 (Board.EndOf "todo") Board.init))
+    [ 1, 2, 3 ]
+
+  -- dataTransfer is a string that has been out of the type system and back,
+  -- so a payload that does not parse falls back to the card being dragged
+  check "an unreadable payload falls back to the model"
+    (ids "done" (Board.update (Board.Dropped (Board.EndOf "done") "not-an-id")
+                   (Board.update (Board.Grabbed 1) Board.init)))
+    [ 5, 6, 1 ]
+  -- ...and with no drag in flight either, nothing moves
+  check "a payload with nothing behind it moves nothing"
+    (ids "todo" (Board.update (Board.Dropped (Board.EndOf "done") "not-an-id") Board.init))
+    [ 1, 2, 3 ]
+
+  -- A drop moves the card but deliberately leaves the drag running, so that
+  -- the window subscriptions are still attached when the same `drop` event
+  -- reaches the window. `dragend` is what ends it.
+  check "a drop does not end the drag"
+    (Board.update (Board.Dropped (Board.EndOf "doing") "1")
+       (Board.update (Board.Grabbed 1) Board.init)).dragging
+    (Just 1)
+  check "a drop does put the drop zones out"
+    (Board.update (Board.Dropped (Board.EndOf "doing") "1")
+       (Board.update (Board.Grabbed 1) Board.init)).hovering
+    Nothing
+
+  -- the drop heard at the window is what ends a successful drag
+  check "the window drop ends the drag"
+    (Board.update (Board.DroppedAt 10.0 20.0)
+       (Board.update (Board.Dropped (Board.EndOf "doing") "1")
+          (Board.update (Board.Grabbed 1) Board.init))).dragging
+    Nothing
+
+  -- and `dragend` is what clears a drag that ended without a drop at all
+  check "DragEnded puts the board back at rest"
+    (Board.update Board.DragEnded (Board.update (Board.Grabbed 1) Board.init)).dragging
+    Nothing
 
   failed <- Ref.read failures
   if failed == 0 then

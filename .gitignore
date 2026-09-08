@@ -14,6 +14,7 @@ index.html
 !test/index.html
 app.js
 /test/router.js
+/test/board.js
 example/
 style.css
 .spago

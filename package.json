@@ -11,7 +11,9 @@
     "build:test-app": "spago build && esbuild test/entry.js --bundle --platform=browser --outfile=test/app.js",
     "test": "spago test && npm run build:test-app && node scripts/open-browser.mjs test/index.html",
     "build:router-app": "spago build && esbuild test/router-entry.js --bundle --platform=browser --outfile=test/router.js",
-    "router-app": "npm run build:router-app && node scripts/open-browser.mjs test/router.html"
+    "router-app": "npm run build:router-app && node scripts/open-browser.mjs test/router.html",
+    "build:board-app": "spago build && esbuild test/board-entry.js --bundle --platform=browser --outfile=test/board.js",
+    "board-app": "npm run build:board-app && node scripts/open-browser.mjs test/board.html"
   },
   "repository": {
     "type": "git",

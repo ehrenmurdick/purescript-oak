@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Oak Board</title>
+  <style>
+    body { font-family: sans-serif; max-width: 48rem; margin: 3rem auto; line-height: 1.5; }
+    h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
+    .hint { color: #666; font-size: 0.9rem; margin-top: 0; }
+
+    .columns { display: flex; gap: 1rem; align-items: flex-start; }
+    .column { flex: 1; background: #f5f6f4; border-radius: 4px; padding: 0.75rem; }
+    .column h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em;
+                 color: #666; margin: 0 0 0.75rem; display: flex; justify-content: space-between; }
+    .count { color: #999; }
+    .cards { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .card { background: #fff; border: 1px solid #ddd; border-radius: 3px;
+            padding: 0.5rem 0.6rem; cursor: grab; display: flex; flex-direction: column; gap: 0.15rem; }
+    .card .title { font-size: 0.9rem; }
+    .card .owner { font-family: monospace; font-size: 0.7rem; color: #999; }
+    /* the card the drag started from, dimmed by the model, not the browser */
+    .card.dragging { opacity: 0.4; cursor: grabbing; }
+    /* a drop here lands the card above this one */
+    .card.drop-above { box-shadow: 0 -3px 0 -1px #2e6b4f; }
+
+    .tail { border: 1px dashed #ccc; border-radius: 3px; padding: 0.5rem 0.6rem;
+            font-size: 0.8rem; color: #aaa; text-align: center; }
+    .tail.drop-into { border-color: #2e6b4f; border-style: solid; color: #2e6b4f; background: #eef4f0; }
+
+    footer { margin-top: 2rem; border-top: 1px solid #ddd; padding-top: 0.75rem;
+             font-size: 0.8rem; color: #666; }
+    .drops { font-family: monospace; }
+    .moves { margin-top: 0.5rem; font-family: monospace; color: #999; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="board.js"></script>
+</body>
+</html>
